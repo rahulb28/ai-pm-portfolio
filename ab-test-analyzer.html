@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A/B Test Analyzer — PM Readout Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --border: #e8e5de;
+  --text: #1c1b18;
+  --muted: #8a877f;
+  --success: #1a6b3c;
+  --success-bg: #f0f9f4;
+  --warn: #92540c;
+  --warn-bg: #fef8f0;
+  --danger: #8b2020;
+  --danger-bg: #fef2f2;
+  --accent: #2c5282;
+  --accent-bg: #ebf4ff;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+header { padding: 40px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+h1 { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+.subtitle { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+@media (max-width: 680px) { .two-col { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 24px;
+}
+
+.card-title {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--muted); margin-bottom: 20px; font-weight: 600;
+}
+
+label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+.helper { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+
+input[type="number"], input[type="text"], select {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+  background: var(--bg); color: var(--text); margin-bottom: 16px;
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+
+.run-btn {
+  width: 100%; padding: 14px; background: var(--text); color: var(--surface);
+  border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer; margin-bottom: 32px;
+  transition: opacity 0.2s;
+}
+.run-btn:hover { opacity: 0.85; }
+
+/* Results */
+.verdict-card {
+  border-radius: 14px; padding: 28px; margin-bottom: 24px;
+  border-left: 5px solid;
+}
+.verdict-card.win { background: var(--success-bg); border-color: var(--success); }
+.verdict-card.inconclusive { background: var(--warn-bg); border-color: var(--warn); }
+.verdict-card.fail { background: var(--danger-bg); border-color: var(--danger); }
+
+.verdict-headline {
+  font-family: 'Fraunces', serif;
+  font-size: 26px; font-weight: 700; margin-bottom: 8px;
+}
+.verdict-headline.win { color: var(--success); }
+.verdict-headline.inconclusive { color: var(--warn); }
+.verdict-headline.fail { color: var(--danger); }
+
+.verdict-body { font-size: 14px; line-height: 1.7; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+@media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.stat-val { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; }
+.stat-val.positive { color: var(--success); }
+.stat-val.negative { color: var(--danger); }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* Confidence bar */
+.conf-bar-wrap { margin-bottom: 24px; }
+.conf-bar-track { height: 12px; background: var(--border); border-radius: 6px; overflow: hidden; margin: 10px 0; position: relative; }
+.conf-bar-fill { height: 100%; border-radius: 6px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+.conf-threshold { position: absolute; left: 95%; top: -4px; height: calc(100% + 8px); width: 2px; background: var(--text); }
+.conf-threshold-label { position: absolute; left: 95%; top: -22px; font-size: 10px; color: var(--muted); transform: translateX(-50%); }
+
+/* PM Readout */
+.readout-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 28px; margin-bottom: 24px;
+}
+
+.readout-section { margin-bottom: 20px; }
+.readout-section-title {
+  font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600;
+  margin-bottom: 8px; color: var(--text);
+}
+.readout-body { font-size: 14px; line-height: 1.75; color: var(--text); }
+
+.chip {
+  display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 100px;
+  margin-right: 6px; margin-bottom: 4px; font-weight: 500;
+}
+.chip.green { background: var(--success-bg); color: var(--success); }
+.chip.orange { background: var(--warn-bg); color: var(--warn); }
+.chip.blue { background: var(--accent-bg); color: var(--accent); }
+
+.hidden { display: none; }
+
+footer { text-align: center; padding: 40px 0 32px; font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>A/B Test Analyzer</h1>
+    <div class="subtitle">Enter experiment results → get statistical analysis + PM-ready readout</div>
+  </header>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Control (A)</div>
+      <label>Visitors</label>
+      <input type="number" id="ctrl-visitors" value="48500">
+      <label>Conversions</label>
+      <input type="number" id="ctrl-conv" value="1214">
+      <label>Total Revenue ($)</label>
+      <input type="number" id="ctrl-rev" value="145800">
+    </div>
+    <div class="card">
+      <div class="card-title">Variant (B)</div>
+      <label>Visitors</label>
+      <input type="number" id="var-visitors" value="48200">
+      <label>Conversions</label>
+      <input type="number" id="var-conv" value="1398">
+      <label>Total Revenue ($)</label>
+      <input type="number" id="var-rev" value="171200">
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">Experiment context</div>
+    <div class="two-col" style="margin-bottom:0">
+      <div>
+        <label>Hypothesis / change tested</label>
+        <input type="text" id="hypothesis" value="New ML bid multiplier on mobile hotel queries">
+        <label>Primary metric</label>
+        <select id="primary-metric">
+          <option>ROAS</option>
+          <option>Conversion Rate</option>
+          <option>Revenue per Visit</option>
+          <option>Gross Profit</option>
+        </select>
+      </div>
+      <div>
+        <label>Test duration (days)</label>
+        <input type="number" id="duration" value="14">
+        <label>Significance threshold</label>
+        <select id="sig-threshold">
+          <option value="0.95">95% (standard)</option>
+          <option value="0.90">90% (exploratory)</option>
+          <option value="0.99">99% (high-stakes)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button class="run-btn" onclick="analyze()">📊 Analyze Experiment</button>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+
+    <div id="verdict-card" class="verdict-card win">
+      <div class="verdict-headline win" id="verdict-headline">—</div>
+      <div class="verdict-body" id="verdict-body">—</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Control CVR</div>
+        <div class="stat-val" id="s-ctrl-cvr">—</div>
+        <div class="stat-sub" id="s-ctrl-cvr-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Variant CVR</div>
+        <div class="stat-val positive" id="s-var-cvr">—</div>
+        <div class="stat-sub" id="s-var-cvr-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Relative lift</div>
+        <div class="stat-val" id="s-lift">—</div>
+        <div class="stat-sub" id="s-lift-sub">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Control RPV</div>
+        <div class="stat-val" id="s-ctrl-rpv">—</div>
+        <div class="stat-sub">revenue/visitor</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Variant RPV</div>
+        <div class="stat-val" id="s-var-rpv">—</div>
+        <div class="stat-sub">revenue/visitor</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revenue delta</div>
+        <div class="stat-val" id="s-rev-delta">—</div>
+        <div class="stat-sub" id="s-rev-delta-sub">—</div>
+      </div>
+    </div>
+
+    <div class="conf-bar-wrap card" style="padding:20px;margin-bottom:24px">
+      <div class="card-title">Statistical confidence</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px">
+        <span>Confidence level</span>
+        <span id="conf-pct-label" style="font-weight:600">—</span>
+      </div>
+      <div class="conf-bar-track">
+        <div class="conf-bar-fill" id="conf-bar" style="width:0%;background:#1a6b3c"></div>
+        <div class="conf-threshold"></div>
+        <span class="conf-threshold-label" id="threshold-lbl">95%</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="pval-note">—</div>
+    </div>
+
+    <!-- PM Readout -->
+    <div class="readout-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-family:'Fraunces',serif;font-size:20px;font-weight:700">PM Readout</div>
+          <div style="font-size:12px;color:var(--muted)">Shareable summary for stakeholders</div>
+        </div>
+        <div id="readout-chips"></div>
+      </div>
+      <div class="readout-section">
+        <div class="readout-section-title">What we tested</div>
+        <div class="readout-body" id="ro-what">—</div>
+      </div>
+      <div class="readout-section">
+        <div class="readout-section-title">What we found</div>
+        <div class="readout-body" id="ro-found">—</div>
+      </div>
+      <div class="readout-section">
+        <div class="readout-section-title">Business impact</div>
+        <div class="readout-body" id="ro-impact">—</div>
+      </div>
+      <div class="readout-section">
+        <div class="readout-section-title">Recommendation</div>
+        <div class="readout-body" id="ro-rec">—</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built by Rahul Bhole · A/B Test Analyzer Prototype · AI Product Management Portfolio
+  </footer>
+</div>
+
+<script>
+function fmt2(n) { return n.toFixed(2); }
+function fmtPct(n) { return (n * 100).toFixed(2) + '%'; }
+
+// z-test for proportions
+function zTest(p1, n1, p2, n2) {
+  const pPool = (p1 * n1 + p2 * n2) / (n1 + n2);
+  const se = Math.sqrt(pPool * (1 - pPool) * (1/n1 + 1/n2));
+  if (se === 0) return 0;
+  return (p2 - p1) / se;
+}
+
+function zToPval(z) {
+  // Two-sided p-value approximation
+  const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+  const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+  const x = Math.abs(z) / Math.sqrt(2);
+  const t = 1 / (1 + p * x);
+  const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
+  return 2 * (1 - y);
+}
+
+function analyze() {
+  const cV = parseInt(document.getElementById('ctrl-visitors').value);
+  const cC = parseInt(document.getElementById('ctrl-conv').value);
+  const cR = parseFloat(document.getElementById('ctrl-rev').value);
+  const vV = parseInt(document.getElementById('var-visitors').value);
+  const vC = parseInt(document.getElementById('var-conv').value);
+  const vR = parseFloat(document.getElementById('var-rev').value);
+  const hyp = document.getElementById('hypothesis').value;
+  const dur = parseInt(document.getElementById('duration').value);
+  const sigThresh = parseFloat(document.getElementById('sig-threshold').value);
+  const primaryMetric = document.getElementById('primary-metric').value;
+
+  const cCVR = cC / cV;
+  const vCVR = vC / vV;
+  const lift = (vCVR - cCVR) / cCVR;
+  const cRPV = cR / cV;
+  const vRPV = vR / vV;
+  const revDelta = vR - cR;
+  const annualDelta = revDelta * (365 / dur);
+
+  const z = zTest(cCVR, cV, vCVR, vV);
+  const pval = zToPval(z);
+  const confidence = 1 - pval;
+
+  // Update stats
+  document.getElementById('s-ctrl-cvr').textContent = fmtPct(cCVR);
+  document.getElementById('s-ctrl-cvr-sub').textContent = cC.toLocaleString() + ' / ' + cV.toLocaleString();
+  document.getElementById('s-var-cvr').textContent = fmtPct(vCVR);
+  document.getElementById('s-var-cvr-sub').textContent = vC.toLocaleString() + ' / ' + vV.toLocaleString();
+
+  const liftEl = document.getElementById('s-lift');
+  liftEl.textContent = (lift >= 0 ? '+' : '') + (lift * 100).toFixed(1) + '%';
+  liftEl.className = 'stat-val ' + (lift > 0 ? 'positive' : 'negative');
+  document.getElementById('s-lift-sub').textContent = 'conversion rate';
+
+  document.getElementById('s-ctrl-rpv').textContent = '$' + fmt2(cRPV);
+  document.getElementById('s-var-rpv').textContent = '$' + fmt2(vRPV);
+
+  const revEl = document.getElementById('s-rev-delta');
+  revEl.textContent = (revDelta >= 0 ? '+$' : '-$') + Math.abs(Math.round(revDelta)).toLocaleString();
+  revEl.className = 'stat-val ' + (revDelta >= 0 ? 'positive' : 'negative');
+  document.getElementById('s-rev-delta-sub').textContent = 'over ' + dur + ' days';
+
+  // Confidence bar
+  const confPct = Math.min(99.9, confidence * 100);
+  document.getElementById('conf-pct-label').textContent = confPct.toFixed(1) + '%';
+  const bar = document.getElementById('conf-bar');
+  bar.style.width = Math.min(100, confPct) + '%';
+  bar.style.background = confidence >= sigThresh ? '#1a6b3c' : confidence >= 0.8 ? '#92540c' : '#8b2020';
+  document.getElementById('threshold-lbl').textContent = Math.round(sigThresh * 100) + '%';
+  document.getElementById('pval-note').textContent = `p-value: ${pval.toFixed(4)} · z-score: ${z.toFixed(2)} · ${dur}-day test`;
+
+  // Verdict
+  const isSignificant = confidence >= sigThresh;
+  const isPositive = lift > 0;
+  let verdictClass, headlineText, bodyText;
+
+  if (isSignificant && isPositive) {
+    verdictClass = 'win';
+    headlineText = '✓ Variant wins — ship it';
+    bodyText = `The variant shows a statistically significant lift of ${(lift*100).toFixed(1)}% in conversion rate at ${confPct.toFixed(0)}% confidence, exceeding your ${Math.round(sigThresh*100)}% threshold. The change is real, not noise.`;
+  } else if (isSignificant && !isPositive) {
+    verdictClass = 'fail';
+    headlineText = '✗ Variant fails — do not ship';
+    bodyText = `The variant shows a statistically significant degradation of ${Math.abs(lift*100).toFixed(1)}% in conversion rate at ${confPct.toFixed(0)}% confidence. The negative impact is real — rolling out would hurt performance.`;
+  } else {
+    verdictClass = 'inconclusive';
+    headlineText = '⚠ Inconclusive — need more data';
+    bodyText = `Confidence is ${confPct.toFixed(0)}%, below your ${Math.round(sigThresh*100)}% threshold. The observed ${(Math.abs(lift)*100).toFixed(1)}% ${lift>0?'lift':'drop'} could be noise. Extend the test or increase sample size before deciding.`;
+  }
+
+  const vCard = document.getElementById('verdict-card');
+  vCard.className = 'verdict-card ' + verdictClass;
+  document.getElementById('verdict-headline').className = 'verdict-headline ' + verdictClass;
+  document.getElementById('verdict-headline').textContent = headlineText;
+  document.getElementById('verdict-body').textContent = bodyText;
+
+  // Chips
+  document.getElementById('readout-chips').innerHTML = [
+    `<span class="chip blue">${dur}d test</span>`,
+    `<span class="chip ${isSignificant ? 'green' : 'orange'}">${confPct.toFixed(0)}% confidence</span>`,
+    `<span class="chip ${isPositive ? 'green' : 'orange'}">${isPositive?'+':''}${(lift*100).toFixed(1)}% CVR</span>`,
+  ].join('');
+
+  // PM Readout
+  document.getElementById('ro-what').textContent =
+    `We tested: "${hyp}" over ${dur} days. The variant was shown to approximately 50% of traffic (${vV.toLocaleString()} visitors) while the control received ${cV.toLocaleString()} visitors. Primary metric: ${primaryMetric}.`;
+
+  document.getElementById('ro-found').textContent =
+    `The variant achieved a ${fmtPct(vCVR)} conversion rate vs. ${fmtPct(cCVR)} for control — a ${(lift>0?'+':'')+((lift)*100).toFixed(1)}% relative change. Revenue per visitor moved from $${fmt2(cRPV)} (control) to $${fmt2(vRPV)} (variant). Statistical confidence: ${confPct.toFixed(1)}%.`;
+
+  const annStr = '$' + Math.round(Math.abs(annualDelta)/1000) + 'K';
+  document.getElementById('ro-impact').textContent =
+    `Over the ${dur}-day window, the variant generated ${revDelta >= 0 ? 'an additional' : 'a shortfall of'} $${Math.abs(Math.round(revDelta)).toLocaleString()} in revenue. Annualized, this represents a ${revDelta>=0?'+':\'-'}${annStr} impact on the top line, assuming consistent traffic and conversion patterns.`;
+
+  let recText;
+  if (isSignificant && isPositive) {
+    recText = `Ship the variant to 100% of traffic. Schedule a 30-day post-launch measurement to confirm lift holds at scale. Document learnings in the ML experiment log for future bid model iterations.`;
+  } else if (isSignificant && !isPositive) {
+    recText = `Do not ship. Roll back immediately if in a staged rollout. Investigate the root cause — review landing page changes, audience shifts, and auction dynamics in the test window. Consider a counter-hypothesis experiment.`;
+  } else {
+    recText = `Hold the decision. Either (a) extend the test for ${Math.round(dur * 1.5)} days to accumulate more signal, or (b) increase the effect size threshold for this type of change. Avoid shipping a variant with inconclusive results — winner's curse applies.`;
+  }
+  document.getElementById('ro-rec').textContent = recText;
+
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
