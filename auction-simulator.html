@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auction Simulator — ML Bidding Strategy</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f3ee;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e0dbd0;
+  --text: #1a1814;
+  --muted: #8a8578;
+  --accent: #d4541a;
+  --accent2: #1a7a4a;
+  --accent3: #1a4a8a;
+  --soft: #f7f5f0;
+}
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+header {
+  background: var(--text);
+  color: var(--bg);
+  padding: 28px 0;
+  margin-bottom: 40px;
+}
+
+.header-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.logo-text { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.logo-sub { font-size: 12px; color: rgba(245,243,238,0.6); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+
+.tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; padding: 4px 10px; border-radius: 4px;
+  border: 1px solid rgba(245,243,238,0.25);
+  color: rgba(245,243,238,0.7);
+}
+
+.main-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 800px) { .main-grid { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.section-title::before {
+  content: ''; display: block;
+  width: 12px; height: 2px; background: var(--accent); border-radius: 1px;
+}
+
+.slider-group { margin-bottom: 20px; }
+
+.slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.slider-label { font-size: 13px; color: var(--text); font-weight: 500; }
+.slider-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--accent);
+  background: rgba(212,84,26,0.08);
+  padding: 2px 8px; border-radius: 4px;
+}
+
+input[type="range"] {
+  width: 100%; height: 4px; -webkit-appearance: none;
+  background: var(--border); border-radius: 2px; cursor: pointer; outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--accent); cursor: pointer;
+  border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.strategy-picker {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-bottom: 20px;
+}
+
+.strat-btn {
+  padding: 10px 8px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--soft); cursor: pointer; text-align: center;
+  font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 500;
+  color: var(--muted); transition: all 0.15s;
+}
+
+.strat-btn:hover { border-color: var(--accent); color: var(--accent); }
+.strat-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.run-btn {
+  width: 100%; padding: 12px;
+  background: var(--text); color: var(--bg);
+  border: none; border-radius: 8px; cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.run-btn:hover { opacity: 0.85; }
+
+/* Auction table */
+.auction-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.auction-table th {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted);
+  padding: 8px 12px; text-align: left;
+  border-bottom: 2px solid var(--border);
+}
+
+.auction-table td {
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.auction-table tr.winner { background: rgba(26,122,74,0.06); }
+.auction-table tr.you { font-weight: 600; }
+
+.won-badge {
+  font-size: 10px; padding: 3px 8px; border-radius: 4px;
+  background: rgba(26,122,74,0.12); color: var(--accent2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.lost-badge {
+  font-size: 10px; padding: 3px 8px; border-radius: 4px;
+  background: rgba(212,84,26,0.08); color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Metrics bar */
+.metrics-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 700px) { .metrics-row { grid-template-columns: repeat(2,1fr); } }
+
+.metric-card {
+  background: var(--soft); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px;
+}
+
+.metric-label { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.metric-value { font-size: 22px; font-weight: 700; }
+.metric-value.green { color: var(--accent2); }
+.metric-value.orange { color: var(--accent); }
+.metric-value.blue { color: var(--accent3); }
+.metric-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* chart */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: flex; align-items: center; gap: 12px; }
+.bar-partner { font-size: 12px; color: var(--muted); width: 90px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; }
+.bar-track { flex: 1; background: var(--border); border-radius: 2px; height: 20px; position: relative; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 2px; position: relative; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+.bar-fill.you { background: var(--accent); }
+.bar-fill.comp { background: var(--accent3); opacity: 0.5; }
+.bar-label { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 10px; font-family: 'JetBrains Mono', monospace; color: white; font-weight: 500; }
+.bar-val { width: 55px; text-align: right; font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+
+footer {
+  text-align: center; padding: 32px 0;
+  font-size: 11px; color: var(--muted);
+  font-family: 'JetBrains Mono', monospace;
+  border-top: 1px solid var(--border); margin-top: 8px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="header-inner">
+      <div>
+        <div class="logo-text">Auction Simulator</div>
+        <div class="logo-sub">ML Bidding Strategy · Multi-Partner Landscape</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="tag">Google</span>
+        <span class="tag">Trivago</span>
+        <span class="tag">Tripadvisor</span>
+        <span class="tag">Kayak</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Metrics row -->
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-label">Auctions Won</div>
+      <div class="metric-value green" id="m-won">—</div>
+      <div class="metric-sub" id="m-won-sub">Run simulation</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg CPC Paid</div>
+      <div class="metric-value orange" id="m-cpc">—</div>
+      <div class="metric-sub" id="m-cpc-sub">Effective cost</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Realized ROAS</div>
+      <div class="metric-value blue" id="m-roas">—</div>
+      <div class="metric-sub" id="m-roas-sub">vs target</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Budget Used</div>
+      <div class="metric-value" id="m-budget">—</div>
+      <div class="metric-sub" id="m-budget-sub">of daily cap</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <!-- Controls -->
+    <div class="panel">
+      <div class="section-title">Bidding parameters</div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Your base bid</span>
+          <span class="slider-val" id="bid-val">$1.80</span>
+        </div>
+        <input type="range" min="0.5" max="5" step="0.05" value="1.8" id="bid-slider" oninput="syncSlider('bid-slider','bid-val','$',2)">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Target ROAS</span>
+          <span class="slider-val" id="roas-val">4.0×</span>
+        </div>
+        <input type="range" min="1" max="10" step="0.5" value="4" id="roas-slider" oninput="syncSlider('roas-slider','roas-val','',1,'×')">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Daily budget</span>
+          <span class="slider-val" id="budget-val">$50,000</span>
+        </div>
+        <input type="range" min="5000" max="200000" step="5000" value="50000" id="budget-slider" oninput="syncBudget()">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Competitor aggressiveness</span>
+          <span class="slider-val" id="comp-val">Medium</span>
+        </div>
+        <input type="range" min="1" max="3" step="1" value="2" id="comp-slider" oninput="syncComp()">
+      </div>
+
+      <div class="section-title" style="margin-top:8px">Bidding strategy</div>
+      <div class="strategy-picker">
+        <button class="strat-btn active" data-strat="target-roas" onclick="setStrat(this)">Target ROAS</button>
+        <button class="strat-btn" data-strat="max-conv" onclick="setStrat(this)">Max Conv.</button>
+        <button class="strat-btn" data-strat="manual" onclick="setStrat(this)">Manual CPC</button>
+        <button class="strat-btn" data-strat="enhanced" onclick="setStrat(this)">Enhanced CPC</button>
+      </div>
+
+      <button class="run-btn" onclick="runSim()">▶ Simulate 1,000 auctions</button>
+    </div>
+
+    <!-- Results -->
+    <div>
+      <!-- Partner win rates -->
+      <div class="panel" style="margin-bottom:16px">
+        <div class="section-title">Win rate by partner</div>
+        <div class="bar-chart" id="partner-chart">
+          <div style="color:var(--muted);font-size:13px">Run simulation to see results</div>
+        </div>
+      </div>
+
+      <!-- Auction waterfall -->
+      <div class="panel">
+        <div class="section-title">Auction sample (20 auctions)</div>
+        <div style="overflow-x:auto">
+          <table class="auction-table">
+            <thead>
+              <tr>
+                <th>Query type</th>
+                <th>Your bid</th>
+                <th>Comp. bid</th>
+                <th>CPC paid</th>
+                <th>Conv. value</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="auction-tbody">
+              <tr><td colspan="6" style="color:var(--muted);text-align:center;padding:20px">Run simulation to see auction breakdown</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Built by Rahul Bhole · Auction Simulator Prototype · AI Product Management Portfolio
+  </footer>
+</div>
+
+<script>
+let currentStrat = 'target-roas';
+
+function syncSlider(sliderId, valId, prefix, decimals, suffix='') {
+  const v = parseFloat(document.getElementById(sliderId).value);
+  document.getElementById(valId).textContent = prefix + v.toFixed(decimals) + suffix;
+}
+
+function syncBudget() {
+  const v = parseFloat(document.getElementById('budget-slider').value);
+  document.getElementById('budget-val').textContent = '$' + v.toLocaleString();
+}
+
+function syncComp() {
+  const v = parseInt(document.getElementById('comp-slider').value);
+  document.getElementById('comp-val').textContent = ['','Low','Medium','High'][v];
+}
+
+function setStrat(btn) {
+  document.querySelectorAll('.strat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentStrat = btn.dataset.strat;
+}
+
+function getCompMultiplier() {
+  const v = parseInt(document.getElementById('comp-slider').value);
+  return [0, 0.7, 1.0, 1.4][v];
+}
+
+function getStratMultiplier() {
+  return { 'target-roas': 1.0, 'max-conv': 1.2, 'manual': 0.9, 'enhanced': 1.05 }[currentStrat] || 1.0;
+}
+
+const queryTypes = [
+  { name: 'Brand exact', cvr: 0.045, gp: 120 },
+  { name: 'Hotel generic', cvr: 0.018, gp: 95 },
+  { name: 'Destination', cvr: 0.022, gp: 110 },
+  { name: 'Competitor', cvr: 0.011, gp: 85 },
+  { name: 'Mobile deal', cvr: 0.033, gp: 70 },
+];
+
+const partners = ['Google', 'Trivago', 'Tripadvisor', 'Kayak'];
+const partnerFloor = { 'Google': 0.3, 'Trivago': 0.15, 'Tripadvisor': 0.2, 'Kayak': 0.12 };
+
+function runSim() {
+  const baseBid = parseFloat(document.getElementById('bid-slider').value);
+  const targetRoas = parseFloat(document.getElementById('roas-slider').value);
+  const budget = parseFloat(document.getElementById('budget-slider').value);
+  const compMult = getCompMultiplier();
+  const stratMult = getStratMultiplier();
+
+  const N = 1000;
+  let won = 0, totalSpend = 0, totalValue = 0, totalCpc = 0, cpcCount = 0;
+  const partnerWins = { 'Google': 0, 'Trivago': 0, 'Tripadvisor': 0, 'Kayak': 0 };
+  const partnerTotal = { 'Google': 0, 'Trivago': 0, 'Tripadvisor': 0, 'Kayak': 0 };
+  const sampleRows = [];
+
+  for (let i = 0; i < N; i++) {
+    const qt = queryTypes[Math.floor(Math.random() * queryTypes.length)];
+    const partner = partners[Math.floor(Math.random() * partners.length)];
+    const noise = 0.8 + Math.random() * 0.4;
+
+    // Your bid = base adjusted for strategy and quality
+    const yourBid = baseBid * stratMult * noise * (qt.cvr / 0.025);
+
+    // Competitor bid
+    const compBase = baseBid * compMult * (0.7 + Math.random() * 0.6);
+    const compBid = compBase + partnerFloor[partner];
+
+    partnerTotal[partner]++;
+    const iWin = yourBid > compBid && totalSpend < budget;
+
+    if (iWin) {
+      won++;
+      const cpcPaid = compBid * 0.95; // second price ish
+      const convProb = qt.cvr * (0.7 + Math.random() * 0.6);
+      const convValue = Math.random() < convProb ? qt.gp : 0;
+      totalSpend += cpcPaid;
+      totalValue += convValue;
+      totalCpc += cpcPaid;
+      cpcCount++;
+      partnerWins[partner]++;
+    }
+
+    if (sampleRows.length < 20) {
+      sampleRows.push({ qt: qt.name, partner, yourBid, compBid, iWin, cpcPaid: iWin ? (compBid * 0.95) : 0, convValue: iWin ? qt.gp : 0 });
+    }
+  }
+
+  const winPct = Math.round(won / N * 100);
+  const avgCpc = cpcCount > 0 ? totalCpc / cpcCount : 0;
+  const roas = totalSpend > 0 ? totalValue / totalSpend : 0;
+  const budgetUsed = Math.min(100, Math.round(totalSpend / budget * 100));
+
+  document.getElementById('m-won').textContent = winPct + '%';
+  document.getElementById('m-won-sub').textContent = won + ' of ' + N + ' auctions';
+  document.getElementById('m-cpc').textContent = '$' + avgCpc.toFixed(2);
+  document.getElementById('m-cpc-sub').textContent = 'avg across partners';
+  document.getElementById('m-roas').textContent = roas.toFixed(1) + '×';
+  const roasDiff = roas - targetRoas;
+  document.getElementById('m-roas-sub').textContent = (roasDiff >= 0 ? '+' : '') + roasDiff.toFixed(1) + '× vs target';
+  document.getElementById('m-budget').textContent = budgetUsed + '%';
+  document.getElementById('m-budget-sub').textContent = '$' + Math.round(totalSpend).toLocaleString() + ' spent';
+
+  // Partner chart
+  const maxWinPct = Math.max(...Object.values(partnerWins).map((w,i) => w / Object.values(partnerTotal)[i]));
+  document.getElementById('partner-chart').innerHTML = partners.map(p => {
+    const pWin = partnerTotal[p] > 0 ? partnerWins[p] / partnerTotal[p] : 0;
+    const pct = Math.round(pWin * 100);
+    const widthPct = maxWinPct > 0 ? Math.round(pWin / maxWinPct * 90) : 0;
+    return `<div class="bar-row">
+      <span class="bar-partner">${p}</span>
+      <div class="bar-track">
+        <div class="bar-fill you" style="width:${widthPct}%">
+          <span class="bar-label">${pct}%</span>
+        </div>
+      </div>
+      <span class="bar-val">${partnerWins[p]} wins</span>
+    </div>`;
+  }).join('');
+
+  // Auction table
+  document.getElementById('auction-tbody').innerHTML = sampleRows.map(r => `
+    <tr class="${r.iWin ? 'winner' : ''} you">
+      <td>${r.qt}</td>
+      <td>$${r.yourBid.toFixed(2)}</td>
+      <td>$${r.compBid.toFixed(2)}</td>
+      <td>${r.iWin ? '$' + r.cpcPaid.toFixed(2) : '—'}</td>
+      <td>${r.iWin && r.convValue > 0 ? '$' + r.convValue : '—'}</td>
+      <td>${r.iWin ? '<span class="won-badge">WON</span>' : '<span class="lost-badge">LOST</span>'}</td>
+    </tr>`).join('');
+}
+
+// Init
+runSim();
+</script>
+</body>
+</html>
