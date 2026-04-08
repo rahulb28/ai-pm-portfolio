@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bid Health Monitor — Real-Time Platform Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d0f14;
+  --surface: #151820;
+  --surface2: #1c2030;
+  --border: rgba(255,255,255,0.07);
+  --text: #d8dce8;
+  --muted: #6a7090;
+  --green: #22c55e;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --cyan: #06b6d4;
+}
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+
+.tb-left { display: flex; align-items: center; gap: 14px; }
+.tb-logo { font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+.tb-logo span { color: var(--blue); }
+
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.live-label { font-size: 11px; color: var(--muted); font-family: 'Roboto Mono', monospace; }
+
+.tb-right { display: flex; align-items: center; gap: 8px; }
+.time-display {
+  font-family: 'Roboto Mono', monospace; font-size: 12px; color: var(--muted);
+}
+
+.btn-sm {
+  font-size: 12px; padding: 5px 12px; border-radius: 5px;
+  border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+  cursor: pointer; font-family: 'Barlow', sans-serif; font-weight: 600;
+  transition: background 0.15s;
+}
+.btn-sm:hover { background: rgba(255,255,255,0.08); }
+.btn-sm.active { background: var(--blue); border-color: var(--blue); color: white; }
+
+.container { padding: 20px 24px; }
+
+/* Status cards */
+.status-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+
+.status-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px;
+  border-top: 2px solid;
+}
+.status-card.green { border-top-color: var(--green); }
+.status-card.yellow { border-top-color: var(--yellow); }
+.status-card.red { border-top-color: var(--red); }
+.status-card.blue { border-top-color: var(--blue); }
+
+.sc-label { font-size: 10px; font-family: 'Roboto Mono', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+.sc-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+.sc-value.green { color: var(--green); }
+.sc-value.yellow { color: var(--yellow); }
+.sc-value.red { color: var(--red); }
+.sc-value.blue { color: var(--blue); }
+.sc-sub { font-size: 11px; color: var(--muted); }
+
+/* Grid layout */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 800px) { .dash-grid { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px;
+}
+
+.panel-title {
+  font-size: 11px; font-family: 'Roboto Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted);
+  margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+}
+
+.panel-badge {
+  font-size: 10px; padding: 2px 7px; border-radius: 4px; font-family: 'Roboto Mono', monospace;
+}
+.panel-badge.ok { background: rgba(34,197,94,0.12); color: var(--green); }
+.panel-badge.warn { background: rgba(245,158,11,0.12); color: var(--yellow); }
+.panel-badge.err { background: rgba(239,68,68,0.12); color: var(--red); }
+
+/* Mini sparkline */
+.spark { display: flex; align-items: flex-end; gap: 2px; height: 36px; }
+.s-bar { flex: 1; border-radius: 1px 1px 0 0; min-height: 2px; }
+
+/* Partner table */
+.partner-table { width: 100%; font-size: 12px; }
+.partner-table tr { border-bottom: 1px solid var(--border); }
+.partner-table tr:last-child { border-bottom: none; }
+.partner-table td { padding: 9px 4px; vertical-align: middle; }
+.partner-name { font-weight: 600; font-size: 13px; }
+.health-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+/* Progress bars */
+.prog-track { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; flex: 1; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+/* Alert feed */
+.alert-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.alert-item:last-child { border-bottom: none; }
+.alert-time { font-family: 'Roboto Mono', monospace; color: var(--muted); flex-shrink: 0; font-size: 11px; margin-top: 1px; }
+.alert-text { color: var(--text); line-height: 1.5; }
+.alert-sev { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+.alert-sev.crit { background: rgba(239,68,68,0.15); color: var(--red); }
+.alert-sev.warn { background: rgba(245,158,11,0.15); color: var(--yellow); }
+.alert-sev.info { background: rgba(59,130,246,0.15); color: var(--blue); }
+.alert-sev.ok { background: rgba(34,197,94,0.12); color: var(--green); }
+
+/* Model refresh timeline */
+.model-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 12px; }
+.model-name { width: 120px; flex-shrink: 0; color: var(--text); font-weight: 600; }
+.model-status { width: 55px; flex-shrink: 0; }
+.model-age { font-family: 'Roboto Mono', monospace; color: var(--muted); font-size: 11px; width: 70px; }
+
+.tag {
+  font-size: 10px; padding: 2px 6px; border-radius: 3px;
+  font-family: 'Roboto Mono', monospace; font-weight: 500;
+}
+.tag.ok { background: rgba(34,197,94,0.12); color: var(--green); }
+.tag.warn { background: rgba(245,158,11,0.12); color: var(--yellow); }
+.tag.stale { background: rgba(239,68,68,0.12); color: var(--red); }
+
+/* Wide panel */
+.wide-panel { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">Bid<span>Health</span></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="live-dot" id="live-dot"></div>
+      <span class="live-label" id="live-status">LIVE · updating every 5s</span>
+    </div>
+  </div>
+  <div class="tb-right">
+    <div class="time-display" id="clock">—</div>
+    <button class="btn-sm active" id="btn-pause" onclick="togglePause()">⏸ Pause</button>
+    <button class="btn-sm" onclick="triggerAlert()">⚠ Inject Alert</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Status cards -->
+  <div class="status-row">
+    <div class="status-card green">
+      <div class="sc-label">Bid Submit Rate</div>
+      <div class="sc-value green" id="m-submit">99.3%</div>
+      <div class="sc-sub">Target ≥ 99%</div>
+    </div>
+    <div class="status-card blue">
+      <div class="sc-label">Auction Coverage</div>
+      <div class="sc-value blue" id="m-coverage">94.1%</div>
+      <div class="sc-sub">Eligible impressions</div>
+    </div>
+    <div class="status-card yellow">
+      <div class="sc-label">Model Freshness</div>
+      <div class="sc-value yellow" id="m-fresh">4h 22m</div>
+      <div class="sc-sub">SLA: &lt;6h refresh</div>
+    </div>
+    <div class="status-card green">
+      <div class="sc-label">Bid Latency p99</div>
+      <div class="sc-value green" id="m-latency">3.1ms</div>
+      <div class="sc-sub">Target &lt;10ms</div>
+    </div>
+    <div class="status-card green">
+      <div class="sc-label">Daily Spend Pacing</div>
+      <div class="sc-value green" id="m-pacing">87%</div>
+      <div class="sc-sub">$43.5K / $50K</div>
+    </div>
+    <div class="status-card blue">
+      <div class="sc-label">Active Experiments</div>
+      <div class="sc-value blue" id="m-exps">3</div>
+      <div class="sc-sub">In flight today</div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <!-- Bid submit sparkline -->
+    <div class="panel">
+      <div class="panel-title">
+        Bid submission rate · 30m
+        <span class="panel-badge ok" id="submit-badge">OK</span>
+      </div>
+      <div class="spark" id="submit-spark"></div>
+    </div>
+
+    <!-- Latency sparkline -->
+    <div class="panel">
+      <div class="panel-title">
+        Bid latency p99 (ms) · 30m
+        <span class="panel-badge ok" id="latency-badge">OK</span>
+      </div>
+      <div class="spark" id="latency-spark"></div>
+    </div>
+
+    <!-- Partner health -->
+    <div class="panel">
+      <div class="panel-title">Partner auction health</div>
+      <table class="partner-table">
+        <tbody id="partner-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Model refresh -->
+    <div class="panel">
+      <div class="panel-title">Model refresh status</div>
+      <div id="model-list"></div>
+    </div>
+
+    <!-- Alert feed -->
+    <div class="panel wide-panel">
+      <div class="panel-title">
+        System alert feed
+        <span class="panel-badge ok" id="alert-badge">0 active</span>
+      </div>
+      <div id="alert-feed"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let paused = false;
+let tick = 0;
+let alerts = [];
+let activeAlertCount = 0;
+
+const partners = [
+  { name: 'Google', color: 'var(--green)', status: 'ok', cov: 96.2, latency: 2.8 },
+  { name: 'Trivago', color: 'var(--green)', status: 'ok', cov: 92.4, latency: 3.2 },
+  { name: 'Tripadvisor', color: 'var(--yellow)', status: 'warn', cov: 88.1, latency: 4.1 },
+  { name: 'Kayak', color: 'var(--green)', status: 'ok', cov: 94.7, latency: 2.9 },
+];
+
+const models = [
+  { name: 'CVR Model', age: 0, sla: 6 },
+  { name: 'GP Predictor', age: 0, sla: 12 },
+  { name: 'Bid Multiplier', age: 0, sla: 6 },
+  { name: 'Device Layer', age: 0, sla: 24 },
+];
+
+const alertTemplates = [
+  { sev: 'WARN', text: 'Tripadvisor auction coverage dropped below 85% threshold — investigating bid eligibility filter' },
+  { sev: 'CRIT', text: 'Bid submission rate for Google dropped to 96.2% — possible API latency issue detected' },
+  { sev: 'INFO', text: 'CVR model refresh completed successfully — new model version deployed (v2.4.1)' },
+  { sev: 'WARN', text: 'Budget pacing at 97% by 3PM — projected to exhaust before 11PM peak window' },
+  { sev: 'OK', text: 'Experiment EXP-2841 (Mobile Bid Multiplier) reached significance — 92% confidence, +11.3% CVR lift' },
+  { sev: 'CRIT', text: 'Bid latency p99 exceeded 8ms on Trivago — approaching SLA threshold of 10ms' },
+  { sev: 'INFO', text: 'A/B test EXP-2839 (Enhanced CPC) paused automatically — budget cap reached' },
+];
+
+function rnd(min, max, dec=1) { return +((min + Math.random() * (max - min)).toFixed(dec)); }
+
+function buildSpark(containerId, values, colorFn) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  values.forEach(v => {
+    const b = document.createElement('div');
+    b.className = 's-bar';
+    const pct = max > min ? (v - min) / (max - min) : 0.5;
+    b.style.height = Math.max(8, pct * 100) + '%';
+    b.style.background = colorFn(v);
+    el.appendChild(b);
+  });
+}
+
+let submitHistory = Array.from({length:30}, () => rnd(98.5,99.9));
+let latencyHistory = Array.from({length:30}, () => rnd(1.5,4.5));
+
+function updateSparklines() {
+  submitHistory.push(rnd(97.8, 99.9));
+  if (submitHistory.length > 30) submitHistory.shift();
+
+  latencyHistory.push(rnd(1.8, 5.5));
+  if (latencyHistory.length > 30) latencyHistory.shift();
+
+  buildSpark('submit-spark', submitHistory, v => v < 98.5 ? 'var(--red)' : v < 99 ? 'var(--yellow)' : 'var(--green)');
+  buildSpark('latency-spark', latencyHistory, v => v > 8 ? 'var(--red)' : v > 5 ? 'var(--yellow)' : 'var(--blue)');
+
+  const lastSubmit = submitHistory[submitHistory.length - 1];
+  const badge = document.getElementById('submit-badge');
+  badge.textContent = lastSubmit < 98.5 ? 'ALERT' : 'OK';
+  badge.className = 'panel-badge ' + (lastSubmit < 98.5 ? 'err' : 'ok');
+
+  const lastLat = latencyHistory[latencyHistory.length - 1];
+  const lbadge = document.getElementById('latency-badge');
+  lbadge.textContent = lastLat > 8 ? 'ALERT' : lastLat > 5 ? 'WARN' : 'OK';
+  lbadge.className = 'panel-badge ' + (lastLat > 8 ? 'err' : lastLat > 5 ? 'warn' : 'ok');
+}
+
+function updateMetrics() {
+  document.getElementById('m-submit').textContent = rnd(99.0,99.7) + '%';
+  document.getElementById('m-coverage').textContent = rnd(92,96) + '%';
+  const freshH = Math.floor(tick * 5 / 3600); const freshM = Math.floor((tick * 5 % 3600) / 60);
+  document.getElementById('m-fresh').textContent = freshH + 'h ' + String(freshM).padStart(2,'0') + 'm';
+  const fresh = freshH * 60 + freshM;
+  document.getElementById('m-fresh').style.color = fresh > 300 ? 'var(--red)' : fresh > 240 ? 'var(--yellow)' : 'var(--green)';
+  document.getElementById('m-latency').textContent = rnd(2.5,4.5) + 'ms';
+  document.getElementById('m-pacing').textContent = rnd(82,93,0) + '%';
+}
+
+function updatePartners() {
+  document.getElementById('partner-tbody').innerHTML = partners.map(p => {
+    const cov = rnd(p.cov - 2, p.cov + 2);
+    const lat = rnd(p.latency - 0.3, p.latency + 0.8);
+    const ok = cov >= 90;
+    return `<tr>
+      <td><span class="health-dot" style="background:${ok?'var(--green)':'var(--yellow)'}"></span></td>
+      <td class="partner-name">${p.name}</td>
+      <td style="width:100px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="prog-track"><div class="prog-fill" style="width:${cov}%;background:${ok?'var(--green)':'var(--yellow)'}"></div></div>
+        </div>
+      </td>
+      <td style="font-family:'Roboto Mono',monospace;font-size:11px;color:var(--muted)">${cov.toFixed(1)}%</td>
+      <td><span class="tag ${lat < 5 ? 'ok' : 'warn'}">${lat.toFixed(1)}ms</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateModels() {
+  document.getElementById('model-list').innerHTML = models.map(m => {
+    const ageH = Math.max(0, (m.age + tick * 5 / 3600)).toFixed(1);
+    const fresh = parseFloat(ageH) < m.sla * 0.7;
+    const warn = parseFloat(ageH) >= m.sla * 0.7 && parseFloat(ageH) < m.sla;
+    const tag = fresh ? 'ok' : warn ? 'warn' : 'stale';
+    const label = fresh ? 'FRESH' : warn ? 'AGING' : 'STALE';
+    return `<div class="model-row">
+      <span class="model-name">${m.name}</span>
+      <span class="model-age">${ageH}h old</span>
+      <div class="prog-track"><div class="prog-fill" style="width:${Math.min(100,parseFloat(ageH)/m.sla*100).toFixed(0)}%;background:${fresh?'var(--green)':warn?'var(--yellow)':'var(--red)'}"></div></div>
+      <span class="tag ${tag}" style="margin-left:8px;flex-shrink:0">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+function addAlert(sev, text) {
+  const now = new Date();
+  const time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  alerts.unshift({ sev, text, time });
+  if (alerts.length > 12) alerts.pop();
+  if (sev === 'CRIT') activeAlertCount++;
+  renderAlerts();
+}
+
+function renderAlerts() {
+  const sevClass = { 'CRIT': 'crit', 'WARN': 'warn', 'INFO': 'info', 'OK': 'ok' };
+  document.getElementById('alert-feed').innerHTML = alerts.length === 0
+    ? '<div style="color:var(--muted);font-size:13px;padding:10px 0">No alerts. All systems nominal.</div>'
+    : alerts.map(a => `<div class="alert-item">
+        <span class="alert-time">${a.time}</span>
+        <span class="alert-sev ${sevClass[a.sev]}">${a.sev}</span>
+        <span class="alert-text">${a.text}</span>
+      </div>`).join('');
+
+  const ab = document.getElementById('alert-badge');
+  const critCount = alerts.filter(a=>a.sev==='CRIT').length;
+  ab.textContent = critCount > 0 ? critCount + ' CRIT' : alerts.length + ' entries';
+  ab.className = 'panel-badge ' + (critCount > 0 ? 'err' : 'ok');
+}
+
+function togglePause() {
+  paused = !paused;
+  const btn = document.getElementById('btn-pause');
+  const dot = document.getElementById('live-dot');
+  const status = document.getElementById('live-status');
+  if (paused) {
+    btn.textContent = '▶ Resume';
+    btn.classList.remove('active');
+    dot.style.background = 'var(--yellow)';
+    dot.style.animation = 'none';
+    status.textContent = 'PAUSED';
+  } else {
+    btn.textContent = '⏸ Pause';
+    btn.classList.add('active');
+    dot.style.background = 'var(--green)';
+    dot.style.animation = '';
+    status.textContent = 'LIVE · updating every 5s';
+  }
+}
+
+function triggerAlert() {
+  const t = alertTemplates[Math.floor(Math.random() * alertTemplates.length)];
+  addAlert(t.sev, t.text);
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+}
+
+// Initial alerts
+addAlert('INFO', 'Dashboard initialized — monitoring 4 partners, 4 ML models, 3 active experiments');
+addAlert('OK', 'Model refresh cycle completed — all CVR models within SLA');
+
+function update() {
+  if (!paused) {
+    tick++;
+    updateMetrics();
+    updateSparklines();
+    updatePartners();
+    updateModels();
+    if (tick % 6 === 0 && Math.random() < 0.4) triggerAlert();
+  }
+  updateClock();
+}
+
+update();
+setInterval(update, 5000);
+setInterval(updateClock, 1000);
+updatePartners();
+updateModels();
+</script>
+</body>
+</html>
