@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI PRD Generator — Product Requirements Document</title>
+<link href="https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f8f6f1;
+  --surface: #ffffff;
+  --border: #e4e0d8;
+  --text: #1e1c18;
+  --muted: #8c8880;
+  --accent: #c8401a;
+  --accent-light: #fff2ee;
+  --blue: #1e4da0;
+  --blue-light: #eef3ff;
+  --green: #1a6b3c;
+  --green-light: #f0f9f4;
+}
+
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.layout { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+/* Sidebar */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 32px 28px; overflow-y: auto;
+}
+
+.sidebar-logo {
+  font-family: 'Literata', serif; font-size: 22px; font-weight: 600;
+  margin-bottom: 6px; color: var(--text);
+}
+.sidebar-sub { font-size: 12px; color: var(--muted); margin-bottom: 32px; }
+
+label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--text); letter-spacing: 0.3px; }
+
+input[type="text"], textarea, select {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; background: var(--bg); color: var(--text); margin-bottom: 18px;
+  transition: border-color 0.15s; resize: vertical;
+}
+
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+textarea { min-height: 80px; }
+
+.gen-btn {
+  width: 100%; padding: 13px; background: var(--accent); color: white;
+  border: none; border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px;
+  transition: opacity 0.2s; letter-spacing: 0.2px;
+}
+.gen-btn:hover { opacity: 0.88; }
+.gen-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Main */
+.main { padding: 40px 48px; overflow-y: auto; }
+@media (max-width: 700px) { .main { padding: 24px 20px; } }
+
+.prd-placeholder {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 400px; text-align: center; color: var(--muted);
+}
+.prd-placeholder-icon { font-size: 48px; margin-bottom: 16px; }
+.prd-placeholder h2 { font-family: 'Literata', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
+.prd-placeholder p { font-size: 14px; line-height: 1.7; max-width: 360px; }
+
+/* PRD document */
+.prd-doc { max-width: 760px; }
+
+.prd-header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 2px solid var(--border); }
+.prd-title { font-family: 'Literata', serif; font-size: 32px; font-weight: 600; line-height: 1.3; margin-bottom: 12px; }
+.prd-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+.prd-meta-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.prd-status {
+  font-size: 11px; padding: 4px 10px; border-radius: 100px; font-weight: 600;
+  background: var(--accent-light); color: var(--accent);
+}
+
+.prd-section { margin-bottom: 36px; }
+.prd-section-title {
+  font-family: 'Literata', serif; font-size: 18px; font-weight: 600;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+}
+.prd-section-num {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--accent);
+  color: white; font-size: 12px; font-family: 'Plus Jakarta Sans', sans-serif;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
+}
+
+.prd-body { font-size: 14px; line-height: 1.8; color: var(--text); }
+
+.metric-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+.metric-table th {
+  background: var(--bg); padding: 8px 12px; text-align: left; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.metric-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.metric-table tr:last-child td { border-bottom: none; }
+
+.story-item {
+  background: var(--bg); border-left: 3px solid var(--blue);
+  border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 10px;
+  font-size: 13px; line-height: 1.6;
+}
+
+.risk-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px; border-radius: 8px; margin-bottom: 8px;
+}
+.risk-high { background: #fff2f2; }
+.risk-med { background: #fffbf0; }
+.risk-low { background: var(--green-light); }
+
+.risk-badge {
+  font-size: 9px; padding: 3px 6px; border-radius: 4px; font-weight: 700;
+  flex-shrink: 0; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.4px;
+}
+.risk-high .risk-badge { background: #ffd5d5; color: #8b2020; }
+.risk-med .risk-badge { background: #ffe4b5; color: #92540c; }
+.risk-low .risk-badge { background: var(--green-light); color: var(--green); border: 1px solid #a8d5b8; }
+
+.risk-text { font-size: 13px; line-height: 1.6; }
+
+.loading-spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: white;
+  border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hidden { display: none; }
+
+/* Toolbar */
+.prd-toolbar { display: flex; gap: 8px; margin-bottom: 28px; flex-wrap: wrap; }
+.tool-btn {
+  font-size: 12px; padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text); cursor: pointer; font-weight: 500;
+  font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s;
+}
+.tool-btn:hover { background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">AI PRD Generator</div>
+    <div class="sidebar-sub">Describe your idea → get a full PRD</div>
+
+    <label>Product / feature name</label>
+    <input type="text" id="f-name" value="ML Bid Multiplier for Mobile Hotel Queries">
+
+    <label>One-sentence problem statement</label>
+    <textarea id="f-problem">Mobile hotel search ROAS is 28% below desktop — our current bid model doesn't account for device-specific conversion intent signals.</textarea>
+
+    <label>Target users</label>
+    <input type="text" id="f-users" value="Performance marketing managers, ML scientists, campaign ops">
+
+    <label>Proposed solution</label>
+    <textarea id="f-solution">Train a device-aware bid multiplier layer on top of the base CVR model that applies real-time mobile intent signals (app vs browser, session depth, time-to-click) to adjust bids at the query level.</textarea>
+
+    <label>Key constraints</label>
+    <textarea id="f-constraints" style="min-height:60px">Must stay within ±25% bid adjustment guardrails. No latency increase >5ms. Must support A/B testing via existing experiment framework.</textarea>
+
+    <label>Product area</label>
+    <select id="f-area">
+      <option>ML Bidding & Optimization</option>
+      <option>Ad Platform</option>
+      <option>Data & Analytics</option>
+      <option>Growth & Monetization</option>
+      <option>Developer Tools</option>
+    </select>
+
+    <button class="gen-btn" id="gen-btn" onclick="generatePRD()">✦ Generate PRD</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div id="placeholder" class="prd-placeholder">
+      <div class="prd-placeholder-icon">📄</div>
+      <h2>Your PRD will appear here</h2>
+      <p>Fill in the form and click Generate. The AI will create a structured PRD with goals, metrics, user stories, and risks.</p>
+    </div>
+
+    <div id="prd-output" class="hidden">
+      <div class="prd-toolbar">
+        <button class="tool-btn" onclick="window.print()">🖨 Print</button>
+        <button class="tool-btn" onclick="copyPRD()">📋 Copy text</button>
+        <button class="tool-btn" onclick="exportMD()">⬇ Export .md</button>
+      </div>
+      <div class="prd-doc" id="prd-doc"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CLAUDE_API = "https://api.anthropic.com/v1/messages";
+
+async function generatePRD() {
+  const name = document.getElementById('f-name').value.trim();
+  const problem = document.getElementById('f-problem').value.trim();
+  const users = document.getElementById('f-users').value.trim();
+  const solution = document.getElementById('f-solution').value.trim();
+  const constraints = document.getElementById('f-constraints').value.trim();
+  const area = document.getElementById('f-area').value;
+
+  if (!name || !problem) { alert('Please fill in at least the product name and problem statement.'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span> Generating…';
+
+  document.getElementById('placeholder').classList.add('hidden');
+  document.getElementById('prd-output').classList.add('hidden');
+
+  const prompt = `You are a senior product manager writing a production-quality PRD. Generate a comprehensive PRD in JSON format for:
+
+Feature: ${name}
+Problem: ${problem}
+Target users: ${users}
+Solution: ${solution}
+Constraints: ${constraints}
+Product area: ${area}
+
+Return ONLY valid JSON with exactly this structure (no markdown, no preamble):
+{
+  "title": "PRD title",
+  "version": "1.0",
+  "date": "Q2 2025",
+  "status": "Draft",
+  "owner": "Senior PM",
+  "problem": "2-3 sentence problem statement with data/context",
+  "opportunity": "Business opportunity and why now",
+  "goals": ["3-4 specific measurable goals"],
+  "non_goals": ["2-3 explicit non-goals"],
+  "metrics": [
+    {"metric": "name", "baseline": "current value", "target": "goal", "timeframe": "when"},
+    {"metric": "name", "baseline": "current value", "target": "goal", "timeframe": "when"},
+    {"metric": "name", "baseline": "current value", "target": "goal", "timeframe": "when"}
+  ],
+  "users": [
+    {"persona": "persona name", "need": "their core need related to this feature"},
+    {"persona": "persona name", "need": "their core need related to this feature"}
+  ],
+  "user_stories": [
+    "As a [user], I want to [action] so that [benefit].",
+    "As a [user], I want to [action] so that [benefit].",
+    "As a [user], I want to [action] so that [benefit].",
+    "As a [user], I want to [action] so that [benefit]."
+  ],
+  "solution_overview": "2-3 paragraph technical and product solution description",
+  "requirements": {
+    "must": ["3-4 must-have requirements"],
+    "should": ["2-3 should-have requirements"],
+    "wont": ["1-2 out of scope items"]
+  },
+  "risks": [
+    {"level": "HIGH", "risk": "risk description", "mitigation": "mitigation plan"},
+    {"level": "MED", "risk": "risk description", "mitigation": "mitigation plan"},
+    {"level": "LOW", "risk": "risk description", "mitigation": "mitigation plan"}
+  ],
+  "timeline": [
+    {"phase": "Phase 1", "duration": "X weeks", "deliverable": "what gets built"},
+    {"phase": "Phase 2", "duration": "X weeks", "deliverable": "what gets built"},
+    {"phase": "Phase 3", "duration": "X weeks", "deliverable": "what gets built"}
+  ],
+  "open_questions": ["2-3 open questions or dependencies to resolve"]
+}`;
+
+  try {
+    const res = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || '';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const prd = JSON.parse(clean);
+    renderPRD(prd, name);
+
+  } catch(e) {
+    console.error(e);
+    // Fallback with template data
+    renderPRD(getFallback(name, problem, users, solution, constraints), name);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✦ Generate PRD';
+}
+
+function getFallback(name, problem, users, solution, constraints) {
+  return {
+    title: name,
+    version: '1.0',
+    date: 'Q2 2025',
+    status: 'Draft',
+    owner: 'Senior PM',
+    problem: problem,
+    opportunity: 'Significant revenue upside by addressing the identified gap with ML-driven precision.',
+    goals: ['Improve primary KPI by 15%+ within 90 days of launch', 'Maintain system reliability at 99.9% uptime', 'Enable self-service experimentation for business stakeholders', 'Ship MVP within 6 weeks'],
+    non_goals: ['Full UI rebuild — this is a model/logic change', 'Supporting non-performance ad formats', 'Real-time reporting dashboard (separate roadmap item)'],
+    metrics: [
+      { metric: 'Conversion Rate', baseline: '2.6%', target: '3.0%+', timeframe: '90 days post-launch' },
+      { metric: 'ROAS', baseline: '3.2×', target: '4.0×', timeframe: '60 days post-launch' },
+      { metric: 'Model latency', baseline: 'N/A', target: '<5ms p99', timeframe: 'At launch' }
+    ],
+    users: [
+      { persona: 'Performance Marketing Manager', need: 'Confidence that the ML system is optimizing efficiently without manual intervention' },
+      { persona: 'ML Scientist', need: 'Clean feature pipelines and clear evaluation frameworks to iterate quickly' }
+    ],
+    user_stories: [
+      'As a marketing manager, I want the bid model to automatically adjust for device type so that I don\'t need to maintain separate manual bid adjustments.',
+      'As an ML scientist, I want clear feature importance logging so that I can diagnose model degradation quickly.',
+      'As a campaign ops manager, I want guardrails that cap bid adjustments so that runaway bids don\'t overspend budgets.',
+      'As a PM, I want an A/B testing integration so that I can measure the model\'s incremental impact cleanly.'
+    ],
+    solution_overview: solution + '\n\nThe solution will be built as a multiplier layer on top of the existing bid-to-value model, ensuring backward compatibility. The multiplier will be bounded by configurable guardrails and subject to the existing A/B testing infrastructure.\n\nConstraints considered: ' + constraints,
+    requirements: {
+      must: ['Real-time bid adjustment within <5ms latency budget', 'Guardrail enforcement: ±25% max adjustment', 'A/B testing via existing experiment framework', 'Model monitoring and drift alerting'],
+      should: ['Self-service guardrail configuration for ops teams', 'Feature importance dashboard for ML team', 'Automatic rollback on performance degradation'],
+      wont: ['Support for brand campaigns (performance only)', 'Manual override UI (out of scope for MVP)']
+    },
+    risks: [
+      { level: 'HIGH', risk: 'Model overfits to recent data during volatile market periods', mitigation: 'Implement rolling validation windows and add market volatility as a feature flag trigger' },
+      { level: 'MED', risk: 'Latency increase degrades auction participation rate', mitigation: 'Benchmark p99 latency in staging; implement async fallback to base model' },
+      { level: 'LOW', risk: 'Stakeholder confusion about bid logic changes', mitigation: 'Document changes in bid platform UI; host walkthrough with campaign ops before launch' }
+    ],
+    timeline: [
+      { phase: 'Phase 1: Foundation', duration: '2 weeks', deliverable: 'Feature engineering, data pipeline, offline model training' },
+      { phase: 'Phase 2: Integration', duration: '3 weeks', deliverable: 'Model serving, guardrail integration, A/B test setup' },
+      { phase: 'Phase 3: Launch', duration: '1 week', deliverable: 'Staged rollout (10% → 50% → 100%), monitoring dashboards' }
+    ],
+    open_questions: ['Who owns guardrail configuration post-launch — PM, ML, or ops?', 'Should the multiplier also account for time-of-day signals, or is device type the only dimension for v1?', 'What is the escalation path if the model causes a ROAS drop >10% in the first 48 hours?']
+  };
+}
+
+function renderPRD(prd, origName) {
+  const doc = document.getElementById('prd-doc');
+  doc.innerHTML = `
+    <div class="prd-header">
+      <div class="prd-title">${prd.title || origName}</div>
+      <div class="prd-meta">
+        <span class="prd-status">${prd.status}</span>
+        <span class="prd-meta-item">📅 ${prd.date}</span>
+        <span class="prd-meta-item">👤 ${prd.owner}</span>
+        <span class="prd-meta-item">v${prd.version}</span>
+      </div>
+    </div>
+
+    ${section(1, 'Problem Statement', `<div class="prd-body">${prd.problem}<br><br><strong>Opportunity:</strong> ${prd.opportunity}</div>`)}
+
+    ${section(2, 'Goals & Non-Goals', `
+      <div class="prd-body"><strong>Goals:</strong></div>
+      <ul style="margin:10px 0 16px 20px;font-size:14px;line-height:1.9">${prd.goals.map(g=>`<li>${g}</li>`).join('')}</ul>
+      <div class="prd-body"><strong>Non-goals:</strong></div>
+      <ul style="margin:10px 0 0 20px;font-size:14px;line-height:1.9;color:var(--muted)">${prd.non_goals.map(g=>`<li>${g}</li>`).join('')}</ul>
+    `)}
+
+    ${section(3, 'Success Metrics', `
+      <table class="metric-table">
+        <thead><tr><th>Metric</th><th>Baseline</th><th>Target</th><th>Timeframe</th></tr></thead>
+        <tbody>${prd.metrics.map(m=>`<tr><td style="font-weight:500">${m.metric}</td><td>${m.baseline}</td><td style="color:var(--green);font-weight:600">${m.target}</td><td>${m.timeframe}</td></tr>`).join('')}</tbody>
+      </table>
+    `)}
+
+    ${section(4, 'User Stories', prd.user_stories.map(s=>`<div class="story-item">${s}</div>`).join(''))}
+
+    ${section(5, 'Solution Overview', `<div class="prd-body" style="white-space:pre-line">${prd.solution_overview}</div>`)}
+
+    ${section(6, 'Requirements', `
+      <div class="prd-body" style="margin-bottom:8px"><strong style="color:var(--accent)">Must have</strong></div>
+      <ul style="margin:0 0 16px 20px;font-size:14px;line-height:1.9">${prd.requirements.must.map(r=>`<li>${r}</li>`).join('')}</ul>
+      <div class="prd-body" style="margin-bottom:8px"><strong style="color:var(--blue)">Should have</strong></div>
+      <ul style="margin:0 0 16px 20px;font-size:14px;line-height:1.9">${prd.requirements.should.map(r=>`<li>${r}</li>`).join('')}</ul>
+      <div class="prd-body" style="margin-bottom:8px"><strong style="color:var(--muted)">Won't have (v1)</strong></div>
+      <ul style="margin:0 0 0 20px;font-size:14px;line-height:1.9;color:var(--muted)">${prd.requirements.wont.map(r=>`<li>${r}</li>`).join('')}</ul>
+    `)}
+
+    ${section(7, 'Risks & Mitigations', prd.risks.map(r=>`
+      <div class="risk-item risk-${r.level.toLowerCase()}">
+        <span class="risk-badge">${r.level}</span>
+        <div class="risk-text"><strong>${r.risk}</strong><br><em>Mitigation:</em> ${r.mitigation}</div>
+      </div>`).join(''))}
+
+    ${section(8, 'Timeline', `
+      <table class="metric-table">
+        <thead><tr><th>Phase</th><th>Duration</th><th>Deliverable</th></tr></thead>
+        <tbody>${prd.timeline.map(t=>`<tr><td style="font-weight:500">${t.phase}</td><td>${t.duration}</td><td>${t.deliverable}</td></tr>`).join('')}</tbody>
+      </table>
+    `)}
+
+    ${section(9, 'Open Questions', `<ul style="margin:0 0 0 20px;font-size:14px;line-height:1.9">${prd.open_questions.map(q=>`<li>${q}</li>`).join('')}</ul>`)}
+  `;
+
+  document.getElementById('prd-output').classList.remove('hidden');
+}
+
+function section(num, title, content) {
+  return `<div class="prd-section">
+    <div class="prd-section-title">
+      <div class="prd-section-num">${num}</div>
+      ${title}
+    </div>
+    ${content}
+  </div>`;
+}
+
+function copyPRD() {
+  const el = document.getElementById('prd-doc');
+  navigator.clipboard.writeText(el.innerText).then(() => alert('PRD text copied!'));
+}
+
+function exportMD() {
+  const el = document.getElementById('prd-doc');
+  const text = el.innerText;
+  const blob = new Blob(['# ' + text], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'prd.md';
+  a.click();
+}
+</script>
+</body>
+</html>
