@@ -283,23 +283,37 @@ function zTest(p1, n1, p2, n2) {
   return (p2 - p1) / se;
 }
 
+// Fixed: was returning 2*(1-y) which doubled the p-value, halving apparent confidence
 function zToPval(z) {
-  // Two-sided p-value approximation
   const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
   const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
   const x = Math.abs(z) / Math.sqrt(2);
   const t = 1 / (1 + p * x);
   const y = 1 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
-  return 2 * (1 - y);
+  return 1 - y;  // correct two-sided p-value
+}
+
+function showError(msg) {
+  const r = document.getElementById('results');
+  r.classList.remove('hidden');
+  r.innerHTML = '<div class="verdict-card fail" style="margin-bottom:0"><div class="verdict-headline fail">⚠ Input Error</div><div class="verdict-body">' + msg + '</div></div>';
 }
 
 function analyze() {
+  try {
   const cV = parseInt(document.getElementById('ctrl-visitors').value);
   const cC = parseInt(document.getElementById('ctrl-conv').value);
   const cR = parseFloat(document.getElementById('ctrl-rev').value);
   const vV = parseInt(document.getElementById('var-visitors').value);
   const vC = parseInt(document.getElementById('var-conv').value);
   const vR = parseFloat(document.getElementById('var-rev').value);
+
+  if ([cV,cC,cR,vV,vC,vR].some(v => isNaN(v) || v < 0))
+    return showError('All fields must be positive numbers.');
+  if (cC > cV) return showError('Control conversions cannot exceed control visitors.');
+  if (vC > vV) return showError('Variant conversions cannot exceed variant visitors.');
+  if (cV < 100 || vV < 100) return showError('Need at least 100 visitors per group for a valid test.');
+
   const hyp = document.getElementById('hypothesis').value;
   const dur = parseInt(document.getElementById('duration').value);
   const sigThresh = parseFloat(document.getElementById('sig-threshold').value);
@@ -400,7 +414,11 @@ function analyze() {
 
   document.getElementById('results').classList.remove('hidden');
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch(e) {
+    showError('Something went wrong: ' + e.message + '. Check that all fields have valid numbers.');
+  }
 }
 </script>
 </body>
 </html>
+
