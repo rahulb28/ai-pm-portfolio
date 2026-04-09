@@ -181,10 +181,12 @@ footer { text-align: center; padding: 40px 0 32px; font-size: 11px; color: var(-
     </div>
   </div>
 
-  <button class="run-btn" onclick="analyze()">📊 Analyze Experiment</button>
+  <button class="run-btn" id="analyze-btn">📊 Analyze Experiment</button>
 
   <!-- Results -->
   <div id="results" class="hidden">
+
+    <div id="error-msg" class="verdict-card fail" style="display:none;margin-bottom:16px"><div class="verdict-headline fail">⚠ Input Error</div><div class="verdict-body" id="error-text"></div></div>
 
     <div id="verdict-card" class="verdict-card win">
       <div class="verdict-headline win" id="verdict-headline">—</div>
@@ -294,9 +296,15 @@ function zToPval(z) {
 }
 
 function showError(msg) {
-  const r = document.getElementById('results');
-  r.classList.remove('hidden');
-  r.innerHTML = '<div class="verdict-card fail" style="margin-bottom:0"><div class="verdict-headline fail">⚠ Input Error</div><div class="verdict-body">' + msg + '</div></div>';
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('error-text').textContent = msg;
+  document.getElementById('error-msg').style.display = 'block';
+  // Hide the real results panels when showing an error
+  document.getElementById('verdict-card').style.visibility = 'hidden';
+}
+function clearError() {
+  document.getElementById('error-msg').style.display = 'none';
+  document.getElementById('verdict-card').style.visibility = 'visible';
 }
 
 function analyze() {
@@ -314,6 +322,7 @@ function analyze() {
   if (vC > vV) return showError('Variant conversions cannot exceed variant visitors.');
   if (cV < 100 || vV < 100) return showError('Need at least 100 visitors per group for a valid test.');
 
+  clearError();
   const hyp = document.getElementById('hypothesis').value;
   const dur = parseInt(document.getElementById('duration').value);
   const sigThresh = parseFloat(document.getElementById('sig-threshold').value);
@@ -418,6 +427,7 @@ function analyze() {
     showError('Something went wrong: ' + e.message + '. Check that all fields have valid numbers.');
   }
 }
+document.getElementById('analyze-btn').addEventListener('click', analyze);
 </script>
 </body>
 </html>
