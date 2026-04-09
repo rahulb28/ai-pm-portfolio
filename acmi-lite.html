@@ -3,697 +3,1278 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ACMI Lite — AI Campaign Management Intelligence</title>
+<title>ACMI — AI Campaign Management Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;
+  --border:rgba(120,100,255,0.15);--accent:#7c6eff;--accent2:#00e5a0;
+  --accent3:#ff6b6b;--text:#e8e6ff;--muted:#7a78a0;--warn:#ffb347;
+}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(124,110,255,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(124,110,255,0.04) 1px,transparent 1px);
+  background-size:40px 40px}
+header{border-bottom:1px solid var(--border);position:relative;z-index:1}
+.header-inner{max-width:1400px;margin:0 auto;padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:#0a0a0f}
+.logo-text{font-size:18px;font-weight:800;letter-spacing:-0.5px}
+.logo-sub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px}
+.pipeline{display:flex;align-items:center;gap:0;flex:1;min-width:0;overflow-x:auto}
+.pipe-step{display:flex;flex-direction:column;align-items:center;min-width:90px;padding:8px 6px;
+  background:var(--surface);border:1px solid var(--border);transition:border-color .3s,background .3s;cursor:default}
+.pipe-step:first-child{border-radius:8px 0 0 8px}.pipe-step:last-child{border-radius:0 8px 8px 0}
+.pipe-step.active{border-color:var(--accent);background:rgba(124,110,255,0.08)}
+.pipe-step.done{border-color:var(--accent2);background:rgba(0,229,160,0.06)}
+.pipe-icon{font-size:16px;margin-bottom:3px}
+.pipe-label{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.pipe-step.active .pipe-label{color:var(--accent)}.pipe-step.done .pipe-label{color:var(--accent2)}
+.pipe-arrow{width:12px;height:1px;background:var(--border);flex-shrink:0}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;border-radius:100px;
+  border:1px solid var(--accent);color:var(--accent);background:rgba(124,110,255,0.08);white-space:nowrap}
+.badge.green{border-color:var(--accent2);color:var(--accent2);background:rgba(0,229,160,0.08)}
+.badge.red{border-color:var(--accent3);color:var(--accent3);background:rgba(255,107,107,0.08)}
+.badge.warn{border-color:var(--warn);color:var(--warn);background:rgba(255,179,71,0.08)}
 
-  :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --surface2: #1a1a26;
-    --border: rgba(120,100,255,0.15);
-    --accent: #7c6eff;
-    --accent2: #00e5a0;
-    --accent3: #ff6b6b;
-    --text: #e8e6ff;
-    --muted: #7a78a0;
-    --warn: #ffb347;
-  }
+/* Layout */
+.app-layout{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 81px);position:relative;z-index:1}
+.sidebar{border-right:1px solid var(--border);padding:20px 16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;height:calc(100vh - 81px);position:sticky;top:0}
+.main-content{padding:24px;overflow-y:auto}
 
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* Sidebar elements */
+.sb-section{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;margin-top:4px}
+.sb-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+label.field-label{display:block;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+select,input[type=range]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 10px;cursor:pointer}
+select:focus{outline:none;border-color:var(--accent)}
+input[type=range]{padding:4px 0;accent-color:var(--accent);background:transparent;border:none}
+.range-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.range-val{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);min-width:36px;text-align:right}
+.filter-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-size:10px;font-family:'IBM Plex Mono',monospace;padding:3px 8px;border-radius:100px;
+  border:1px solid var(--border);cursor:pointer;transition:all .2s;color:var(--muted)}
+.chip.on{border-color:var(--accent);color:var(--accent);background:rgba(124,110,255,0.1)}
+.radio-group{display:flex;flex-direction:column;gap:6px}
+.radio-opt{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;padding:6px 8px;border-radius:6px;border:1px solid transparent;transition:all .2s}
+.radio-opt.selected{border-color:var(--accent);background:rgba(124,110,255,0.08);color:var(--accent)}
+.radio-dot{width:8px;height:8px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;transition:all .2s}
+.radio-opt.selected .radio-dot{background:var(--accent);border-color:var(--accent)}
+.run-btn{display:block;width:100%;background:linear-gradient(135deg,var(--accent),#5b4de8);color:white;border:none;
+  border-radius:10px;padding:13px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+  transition:opacity .2s,transform .1s;letter-spacing:.3px}
+.run-btn:hover{opacity:.9}.run-btn:active{transform:scale(.99)}.run-btn:disabled{opacity:.4;cursor:not-allowed}
 
-  .grid-bg {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image:
-      linear-gradient(rgba(124,110,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,110,255,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
+/* Section titles */
+.section-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:16px}
 
-  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+/* Anomaly inbox table */
+.inbox-table{width:100%;border-collapse:collapse;font-size:12px}
+.inbox-table th{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.5px;text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap}
+.inbox-table th:hover{color:var(--text)}
+.inbox-table td{padding:10px 12px;border-bottom:1px solid rgba(120,100,255,0.07);vertical-align:middle}
+.inbox-table tr.anomaly-row{cursor:pointer;transition:background .15s}
+.inbox-table tr.anomaly-row:hover{background:rgba(124,110,255,0.05)}
+.inbox-table tr.anomaly-row.selected{background:rgba(124,110,255,0.1);border-left:3px solid var(--accent)}
+.sev-pill{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:100px;font-weight:500}
+.sev-high{background:rgba(255,107,107,0.15);color:var(--accent3);border:1px solid rgba(255,107,107,0.3)}
+.sev-medium{background:rgba(255,179,71,0.15);color:var(--warn);border:1px solid rgba(255,179,71,0.3)}
+.sev-low{background:rgba(0,229,160,0.15);color:var(--accent2);border:1px solid rgba(0,229,160,0.3)}
+.mono{font-family:'IBM Plex Mono',monospace}
+.up{color:var(--accent3)}.down{color:var(--accent2)}
+.inbox-actions{display:flex;align-items:center;gap:12px;margin-top:12px;margin-bottom:24px}
+.action-btn{padding:9px 18px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);
+  background:rgba(124,110,255,0.08);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.action-btn:hover{background:rgba(124,110,255,0.16)}.action-btn:disabled{opacity:.35;cursor:not-allowed}
+.action-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.action-btn.primary:hover{opacity:.88}
 
-  header {
-    padding: 32px 0 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 32px;
-  }
+/* Pipeline detail panel */
+.detail-panel{margin-top:8px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}
+.tab-btn{padding:10px 18px;font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--muted);
+  background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:all .2s}
+.tab-btn:hover{color:var(--text)}.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}.tab-content.active{display:block}
 
-  .header-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+/* Panels & cards */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.panel-title{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.panel-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.panel-dot.green{background:var(--accent2)}.panel-dot.red{background:var(--accent3)}.panel-dot.warn{background:var(--warn)}
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+.metric-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px}
+.metric-card .label{font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.metric-card .value{font-size:20px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.metric-card .value.pos{color:var(--accent2)}.metric-card .value.neg{color:var(--accent3)}.metric-card .value.neu{color:var(--accent)}
 
-  .logo {
-    display: flex; align-items: center; gap: 12px;
-  }
+/* Attribution table */
+.attr-table{width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace}
+.attr-table th{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+  padding:8px 12px;border-bottom:1px solid var(--border);text-align:left}
+.attr-table td{padding:9px 12px;border-bottom:1px solid rgba(120,100,255,0.07)}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.bar-bg{height:6px;border-radius:3px;background:var(--surface2);flex:1;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.bar-pos{background:var(--accent2)}.bar-neg{background:var(--accent3)}
 
-  .logo-icon {
-    width: 40px; height: 40px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 13px; font-weight: 500; color: #0a0a0f;
-  }
+/* Verdict */
+.verdict-box{border-radius:10px;padding:16px 20px;margin-bottom:16px;border:1px solid}
+.verdict-issue{background:rgba(255,107,107,0.08);border-color:rgba(255,107,107,0.3)}
+.verdict-opportunity{background:rgba(0,229,160,0.08);border-color:rgba(0,229,160,0.3)}
+.verdict-watch{background:rgba(255,179,71,0.08);border-color:rgba(255,179,71,0.3)}
+.verdict-within_expected{background:rgba(124,110,255,0.08);border-color:rgba(124,110,255,0.3)}
+.verdict-label{font-size:16px;font-weight:700;margin-bottom:4px}
+.verdict-issue .verdict-label{color:var(--accent3)}.verdict-opportunity .verdict-label{color:var(--accent2)}
+.verdict-watch .verdict-label{color:var(--warn)}.verdict-within_expected .verdict-label{color:var(--accent)}
 
-  .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-  .logo-sub { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-top: 2px; }
+/* Narrative */
+.narrative{font-size:13px;line-height:1.8;color:var(--text);white-space:pre-line}
+.narrative strong{color:var(--accent);font-weight:700}
+.caveat{background:rgba(255,179,71,0.08);border:1px solid rgba(255,179,71,0.25);border-radius:8px;
+  padding:10px 14px;font-size:12px;color:var(--warn);margin-top:8px;display:flex;gap:8px;align-items:flex-start}
 
-  .badge {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    padding: 4px 10px;
-    border-radius: 100px;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    background: rgba(124,110,255,0.08);
-  }
+/* Rec cards */
+.rec-card{background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:12px;border-left:3px solid var(--accent);position:relative}
+.rec-card.low{border-left-color:var(--accent2)}.rec-card.medium{border-left-color:var(--warn)}.rec-card.high{border-left-color:var(--accent3)}
+.rec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.rec-title{font-size:13px;font-weight:700;line-height:1.4}
+.rec-type{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;
+  background:rgba(124,110,255,0.15);color:var(--accent);flex-shrink:0}
+.rec-meta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.rec-kv{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+.rec-kv span{color:var(--text)}
+.rec-rationale{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+.violation{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.25);border-radius:6px;
+  padding:6px 10px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--accent3);margin-bottom:6px}
 
-  .badge.green { border-color: var(--accent2); color: var(--accent2); background: rgba(0,229,160,0.08); }
-  .badge.red { border-color: var(--accent3); color: var(--accent3); background: rgba(255,107,107,0.08); }
-  .badge.warn { border-color: var(--warn); color: var(--warn); background: rgba(255,179,71,0.08); }
+/* Execution panel */
+.exec-action{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.exec-title{font-size:13px;font-weight:600;margin-bottom:12px}
+.exec-btns{display:flex;gap:8px}
+.exec-btn{padding:8px 16px;border-radius:7px;font-size:12px;font-family:'Syne',sans-serif;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid}
+.exec-btn.approve{background:rgba(0,229,160,0.12);border-color:var(--accent2);color:var(--accent2)}
+.exec-btn.approve:hover{background:rgba(0,229,160,0.22)}.exec-btn.approve:disabled{opacity:.3;cursor:not-allowed}
+.exec-btn.deny{background:rgba(255,107,107,0.1);border-color:var(--accent3);color:var(--accent3)}
+.exec-btn.deny:hover{background:rgba(255,107,107,0.2)}
+.exec-btn.rollback{background:rgba(255,179,71,0.1);border-color:var(--warn);color:var(--warn)}
+.exec-btn.auto-exec{background:rgba(124,110,255,0.12);border-color:var(--accent);color:var(--accent)}
+.status-tag{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 10px;border-radius:6px}
+.status-approved{background:rgba(0,229,160,0.1);color:var(--accent2)}.status-denied{background:rgba(255,107,107,0.1);color:var(--accent3)}
+.status-auto_executed{background:rgba(124,110,255,0.1);color:var(--accent)}.status-rolled_back{background:rgba(255,179,71,0.1);color:var(--warn)}
+.status-pending{background:rgba(120,120,120,0.1);color:var(--muted)}
+.outcome-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:10px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);line-height:1.6}
 
-  /* Pipeline visualization */
-  .pipeline {
-    display: flex; align-items: center; gap: 0;
-    margin-bottom: 32px; overflow-x: auto; padding-bottom: 8px;
-  }
+/* Audit log */
+.audit-table{width:100%;border-collapse:collapse;font-size:11px;font-family:'IBM Plex Mono',monospace}
+.audit-table th{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left}
+.audit-table td{padding:8px 10px;border-bottom:1px solid rgba(120,100,255,0.07);color:var(--muted);vertical-align:top}
+.audit-table td:first-child{color:var(--text)}
 
-  .pipe-step {
-    display: flex; flex-direction: column; align-items: center;
-    min-width: 120px; padding: 12px 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    position: relative;
-    transition: border-color 0.3s;
-  }
-
-  .pipe-step:first-child { border-radius: 10px 0 0 10px; }
-  .pipe-step:last-child { border-radius: 0 10px 10px 0; }
-
-  .pipe-step.active { border-color: var(--accent); }
-  .pipe-step.done { border-color: var(--accent2); }
-
-  .pipe-icon {
-    font-size: 18px; margin-bottom: 6px;
-  }
-
-  .pipe-label {
-    font-size: 10px; font-family: 'IBM Plex Mono', monospace;
-    color: var(--muted); text-align: center; text-transform: uppercase; letter-spacing: 0.5px;
-  }
-
-  .pipe-label.active { color: var(--accent); }
-  .pipe-label.done { color: var(--accent2); }
-
-  .pipe-arrow {
-    width: 20px; height: 1px; background: var(--border); flex-shrink: 0;
-  }
-
-  /* Input grid */
-  .input-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  .input-group {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-  }
-
-  .input-label {
-    font-size: 10px; font-family: 'IBM Plex Mono', monospace;
-    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
-    margin-bottom: 8px; display: block;
-  }
-
-  .input-row { display: flex; align-items: center; gap: 8px; }
-
-  input[type="number"] {
-    flex: 1; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 8px 12px; color: var(--text);
-    font-family: 'IBM Plex Mono', monospace; font-size: 14px;
-    width: 100%;
-  }
-
-  input[type="number"]:focus { outline: none; border-color: var(--accent); }
-
-  .unit { font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
-
-  .run-btn {
-    display: block; width: 100%;
-    background: linear-gradient(135deg, var(--accent), #5b4de8);
-    color: white; border: none; border-radius: 10px;
-    padding: 14px; font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700; cursor: pointer;
-    margin-bottom: 32px; letter-spacing: 0.3px;
-    transition: opacity 0.2s, transform 0.1s;
-  }
-
-  .run-btn:hover { opacity: 0.9; }
-  .run-btn:active { transform: scale(0.99); }
-  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* Output panels */
-  .output-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-
-  @media (max-width: 700px) { .output-grid { grid-template-columns: 1fr; } }
-
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-  }
-
-  .panel-title {
-    font-size: 11px; font-family: 'IBM Plex Mono', monospace;
-    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
-    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-  }
-
-  .panel-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
-  .panel-dot.green { background: var(--accent2); }
-  .panel-dot.red { background: var(--accent3); }
-
-  /* Anomaly list */
-  .anomaly-item {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 12px; border-radius: 8px; margin-bottom: 8px;
-    border: 1px solid transparent;
-  }
-
-  .anomaly-item.high { background: rgba(255,107,107,0.06); border-color: rgba(255,107,107,0.2); }
-  .anomaly-item.med { background: rgba(255,179,71,0.06); border-color: rgba(255,179,71,0.2); }
-  .anomaly-item.low { background: rgba(0,229,160,0.06); border-color: rgba(0,229,160,0.2); }
-
-  .anomaly-severity {
-    font-size: 9px; font-family: 'IBM Plex Mono', monospace;
-    padding: 3px 6px; border-radius: 4px; font-weight: 500; flex-shrink: 0; margin-top: 1px;
-  }
-
-  .high .anomaly-severity { background: rgba(255,107,107,0.2); color: var(--accent3); }
-  .med .anomaly-severity { background: rgba(255,179,71,0.2); color: var(--warn); }
-  .low .anomaly-severity { background: rgba(0,229,160,0.2); color: var(--accent2); }
-
-  .anomaly-text { font-size: 13px; color: var(--text); line-height: 1.5; }
-  .anomaly-metric { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
-
-  /* Recommendation cards */
-  .rec-card {
-    background: var(--surface2);
-    border-radius: 10px; padding: 16px; margin-bottom: 12px;
-    border-left: 3px solid var(--accent);
-  }
-
-  .rec-card.green-border { border-left-color: var(--accent2); }
-  .rec-card.warn-border { border-left-color: var(--warn); }
-
-  .rec-action { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-  .rec-reason { font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .rec-impact {
-    margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap;
-  }
-
-  /* Metric display */
-  .metric-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
-  }
-  .metric-row:last-child { border-bottom: none; }
-  .metric-name { font-size: 13px; color: var(--muted); }
-  .metric-val { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; }
-  .metric-val.up { color: var(--accent3); }
-  .metric-val.down { color: var(--accent2); }
-
-  /* Agent trace */
-  .trace-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-  }
-
-  .trace-line {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px; color: var(--muted);
-    padding: 4px 0;
-    display: flex; gap: 12px;
-  }
-
-  .trace-time { color: rgba(124,110,255,0.6); flex-shrink: 0; }
-  .trace-agent { color: var(--accent); flex-shrink: 0; }
-  .trace-msg { color: var(--text); }
-
-  .loading-bar {
-    height: 2px; background: var(--border);
-    border-radius: 1px; margin: 16px 0; overflow: hidden;
-    display: none;
-  }
-
-  .loading-fill {
-    height: 100%; width: 0; border-radius: 1px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    transition: width 0.3s ease;
-  }
-
-  .hidden { display: none; }
-
-  /* Sparkline */
-  .sparkline { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
-  .spark-bar {
-    flex: 1; border-radius: 2px 2px 0 0;
-    background: rgba(124,110,255,0.3);
-    transition: height 0.4s ease, background 0.3s;
-  }
-  .spark-bar.alert { background: rgba(255,107,107,0.5); }
-
-  footer {
-    text-align: center; padding: 40px 0 32px;
-    font-size: 11px; color: var(--muted);
-    font-family: 'IBM Plex Mono', monospace;
-    border-top: 1px solid var(--border); margin-top: 16px;
-  }
+/* Utilities */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mt-8{margin-top:8px}.mt-16{margin-top:16px}.mb-8{margin-bottom:8px}
+.text-muted{color:var(--muted);font-size:12px}.text-mono{font-family:'IBM Plex Mono',monospace}
+.empty-state{text-align:center;padding:48px 24px;color:var(--muted);font-size:13px}
+.empty-state .icon{font-size:32px;margin-bottom:12px}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+@media(max-width:900px){.app-layout{grid-template-columns:1fr}.sidebar{height:auto;position:static;border-right:none;border-bottom:1px solid var(--border)}.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div class="grid-bg"></div>
 
-<div class="container">
-  <header>
-    <div class="header-inner">
-      <div class="logo">
-        <div class="logo-icon">AI</div>
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">AI</div>
+      <div>
+        <div class="logo-text">ACMI</div>
+        <div class="logo-sub">Artificial Campaign Management Intelligence</div>
+      </div>
+    </div>
+    <div class="pipeline" id="pipeline-steps"></div>
+    <span class="badge" id="status-badge">Ready</span>
+  </div>
+</header>
+
+<div class="app-layout">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div>
+      <div class="sb-section">Scenario</div>
+      <div class="sb-card">
+        <label class="field-label">Campaign Scenario</label>
+        <select id="sel-scenario">
+          <option value="normal">Normal (baseline)</option>
+          <option value="cpm_inflation" selected>CPM Inflation</option>
+          <option value="cvr_drop">CVR Drop</option>
+          <option value="mix_shift">Mix Shift</option>
+          <option value="seasonality">Seasonality</option>
+          <option value="bidding_changes">Bidding Changes</option>
+        </select>
+        <div id="scenario-desc" class="text-muted mt-8" style="font-size:11px;line-height:1.5"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sb-section">Time Window</div>
+      <div class="sb-card" style="display:flex;flex-direction:column;gap:10px">
         <div>
-          <div class="logo-text">ACMI Lite</div>
-          <div class="logo-sub">Artificial Campaign Management Intelligence</div>
+          <label class="field-label">History (days)</label>
+          <div class="range-row"><input type="range" id="sl-days" min="30" max="120" step="15" value="90"><span class="range-val" id="val-days">90</span></div>
+        </div>
+        <div>
+          <label class="field-label">Anomaly window (days)</label>
+          <div class="range-row"><input type="range" id="sl-recent" min="3" max="14" step="1" value="7"><span class="range-val" id="val-recent">7</span></div>
+        </div>
+        <div>
+          <label class="field-label">Z-score threshold</label>
+          <div class="range-row"><input type="range" id="sl-z" min="1.5" max="4.0" step="0.25" value="2.0"><span class="range-val" id="val-z">2.0</span></div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <span class="badge">v0.1 prototype</span>
-        <span class="badge green" id="status-badge">● ready</span>
-      </div>
     </div>
-  </header>
 
-  <!-- Agent pipeline -->
-  <div class="pipeline">
-    <div class="pipe-step" id="step-observe">
-      <div class="pipe-icon">👁</div>
-      <div class="pipe-label" id="lbl-observe">Observer</div>
-    </div>
-    <div class="pipe-arrow"></div>
-    <div class="pipe-step" id="step-reason">
-      <div class="pipe-icon">🧠</div>
-      <div class="pipe-label" id="lbl-reason">Reasoning</div>
-    </div>
-    <div class="pipe-arrow"></div>
-    <div class="pipe-step" id="step-ctx">
-      <div class="pipe-icon">📚</div>
-      <div class="pipe-label" id="lbl-ctx">Context</div>
-    </div>
-    <div class="pipe-arrow"></div>
-    <div class="pipe-step" id="step-explain">
-      <div class="pipe-icon">💬</div>
-      <div class="pipe-label" id="lbl-explain">Explain</div>
-    </div>
-    <div class="pipe-arrow"></div>
-    <div class="pipe-step" id="step-rec">
-      <div class="pipe-icon">🎯</div>
-      <div class="pipe-label" id="lbl-rec">Recommend</div>
-    </div>
-    <div class="pipe-arrow"></div>
-    <div class="pipe-step" id="step-exec">
-      <div class="pipe-icon">⚡</div>
-      <div class="pipe-label" id="lbl-exec">Execute</div>
-    </div>
-  </div>
-
-  <!-- Inputs -->
-  <div class="input-grid">
-    <div class="input-group">
-      <label class="input-label">Target ROAS</label>
-      <div class="input-row">
-        <input type="number" id="roas-target" value="4.5" step="0.1" min="1">
-        <span class="unit">×</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Actual ROAS (7d avg)</label>
-      <div class="input-row">
-        <input type="number" id="roas-actual" value="2.9" step="0.1" min="0">
-        <span class="unit">×</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Daily Budget</label>
-      <div class="input-row">
-        <input type="number" id="budget" value="50000" step="1000">
-        <span class="unit">$</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Budget Utilization</label>
-      <div class="input-row">
-        <input type="number" id="utilization" value="94" step="1" min="0" max="100">
-        <span class="unit">%</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">CVR (Conv. Rate)</label>
-      <div class="input-row">
-        <input type="number" id="cvr" value="1.8" step="0.1" min="0">
-        <span class="unit">%</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">CVR Baseline</label>
-      <div class="input-row">
-        <input type="number" id="cvr-base" value="2.6" step="0.1" min="0">
-        <span class="unit">%</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">Avg CPC</label>
-      <div class="input-row">
-        <input type="number" id="cpc" value="1.85" step="0.05" min="0">
-        <span class="unit">$</span>
-      </div>
-    </div>
-    <div class="input-group">
-      <label class="input-label">CPC Baseline</label>
-      <div class="input-row">
-        <input type="number" id="cpc-base" value="1.40" step="0.05" min="0">
-        <span class="unit">$</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="loading-bar" id="loading-bar">
-    <div class="loading-fill" id="loading-fill"></div>
-  </div>
-
-  <button class="run-btn" id="run-btn" onclick="runACMI()">
-    ⚡ Run ACMI Analysis
-  </button>
-
-  <!-- Output -->
-  <div id="output-section" class="hidden">
-
-    <!-- Sparkline trend -->
-    <div class="panel" style="margin-bottom:16px">
-      <div class="panel-title"><div class="panel-dot red"></div>ROAS trend (simulated 14d)</div>
-      <div class="sparkline" id="sparkline"></div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px">
-        <span style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace">14d ago</span>
-        <span style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace">today</span>
+    <div>
+      <div class="sb-section">Filters</div>
+      <div class="sb-card" style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="field-label">Channels</label>
+          <div class="filter-chips" id="chips-channels"></div>
+        </div>
+        <div>
+          <label class="field-label">Geos</label>
+          <div class="filter-chips" id="chips-geos"></div>
+        </div>
+        <div>
+          <label class="field-label">Audiences</label>
+          <div class="filter-chips" id="chips-audiences"></div>
+        </div>
       </div>
     </div>
 
-    <div class="output-grid">
-      <!-- Anomalies -->
-      <div class="panel">
-        <div class="panel-title"><div class="panel-dot red"></div>Detected anomalies</div>
-        <div id="anomaly-list"></div>
+    <div>
+      <div class="sb-section">Goals</div>
+      <div class="sb-card" style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="field-label">Primary Goal</label>
+          <div class="radio-group" id="radio-goal">
+            <div class="radio-opt selected" data-val="roas"><div class="radio-dot"></div>ROAS</div>
+            <div class="radio-opt" data-val="growth"><div class="radio-dot"></div>Growth</div>
+            <div class="radio-opt" data-val="pacing"><div class="radio-dot"></div>Pacing</div>
+          </div>
+        </div>
+        <div>
+          <label class="field-label">Risk Tolerance</label>
+          <div class="radio-group" id="radio-risk">
+            <div class="radio-opt" data-val="low"><div class="radio-dot"></div>Low</div>
+            <div class="radio-opt selected" data-val="medium"><div class="radio-dot"></div>Medium</div>
+            <div class="radio-opt" data-val="high"><div class="radio-dot"></div>High</div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <!-- Metrics delta -->
-      <div class="panel">
-        <div class="panel-title"><div class="panel-dot"></div>Performance vs baseline</div>
-        <div id="metrics-delta"></div>
+    <div>
+      <div class="sb-section">Execution Mode</div>
+      <div class="sb-card">
+        <div class="radio-group" id="radio-exec">
+          <div class="radio-opt" data-val="recommend_only"><div class="radio-dot"></div>👁 Recommend Only</div>
+          <div class="radio-opt selected" data-val="human_in_loop"><div class="radio-dot"></div>🙋 Human-in-the-Loop</div>
+          <div class="radio-opt" data-val="auto_low_risk"><div class="radio-dot"></div>⚡ Auto (Low Risk)</div>
+        </div>
       </div>
     </div>
 
-    <!-- Agent trace -->
-    <div class="trace-panel">
-      <div class="panel-title"><div class="panel-dot green"></div>Agent reasoning trace</div>
-      <div id="trace-log"></div>
+    <div>
+      <div class="sb-section">Guardrails</div>
+      <div class="sb-card" style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="field-label">Max Bid Δ/day</label>
+          <div class="range-row"><input type="range" id="sl-bid" min="5" max="50" step="5" value="25"><span class="range-val" id="val-bid">25%</span></div>
+        </div>
+        <div>
+          <label class="field-label">Min ROAS Floor</label>
+          <div class="range-row"><input type="range" id="sl-roas" min="0.3" max="2.0" step="0.1" value="0.8"><span class="range-val" id="val-roas">0.8</span></div>
+        </div>
+        <div>
+          <label class="field-label">Max Spend Δ</label>
+          <div class="range-row"><input type="range" id="sl-spend" min="5" max="50" step="5" value="30"><span class="range-val" id="val-spend">30%</span></div>
+        </div>
+        <div>
+          <label class="field-label">Blocked Channels</label>
+          <div class="filter-chips" id="chips-blocked"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Recommendations -->
-    <div class="panel" style="margin-bottom:24px">
-      <div class="panel-title"><div class="panel-dot green"></div>Guardrail-aware recommendations</div>
-      <div id="rec-list"></div>
+    <button class="run-btn" id="btn-load">🔄 Load / Refresh Data</button>
+  </aside>
+
+  <!-- ── Main Content ── -->
+  <main class="main-content">
+    <!-- Anomaly Inbox -->
+    <div class="section-title">📥 Anomaly Inbox</div>
+    <div class="section-sub" id="inbox-sub">Click "Load / Refresh Data" to begin.</div>
+
+    <div id="inbox-container">
+      <div class="empty-state"><div class="icon">📡</div>No data loaded yet.</div>
     </div>
 
-  </div>
+    <div class="inbox-actions" id="inbox-actions" style="display:none">
+      <button class="action-btn primary" id="btn-pipeline" disabled>🔍 Run Full Pipeline</button>
+      <span class="text-muted text-mono" id="selected-label">No anomaly selected</span>
+    </div>
 
-  <footer>
-    Built by Rahul Bhole · ACMI Prototype · AI Product Management Portfolio
-    <br>Inspired by real bidding platform work at Expedia Group
-  </footer>
+    <hr class="divider">
+
+    <!-- Detail Panel -->
+    <div id="detail-panel" style="display:none">
+      <div class="tabs" id="tabs-bar"></div>
+      <div id="tab-trends"       class="tab-content"></div>
+      <div id="tab-attribution"  class="tab-content"></div>
+      <div id="tab-context"      class="tab-content"></div>
+      <div id="tab-explanation"  class="tab-content"></div>
+      <div id="tab-recommendations" class="tab-content"></div>
+      <div id="tab-execution"    class="tab-content"></div>
+    </div>
+  </main>
 </div>
 
 <script>
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+'use strict';
+// ═══════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════
+const CHANNELS  = ['Google','Meta','TikTok','LinkedIn'];
+const GEOS      = ['US','UK','DE','FR','AU'];
+const AUDIENCES = ['Prospecting','Retargeting','Lookalike'];
+const METRICS   = ['roas','cpm','cvr','spend'];
 
-function pct(a, b) { return (((a - b) / b) * 100).toFixed(1); }
-function fmt(n, p=2) { return Number(n).toFixed(p); }
+const SCENARIO_DESC = {
+  normal:          'Baseline fluctuations only — no injected anomalies.',
+  cpm_inflation:   'CPM spikes 40–60% in Google/US in the final 30% of the period.',
+  cvr_drop:        'CVR drops 50–75% for Prospecting audiences in the final 30%.',
+  mix_shift:       'Spend shifts from Google → Meta (60% realloc) in the final 30%.',
+  seasonality:     'Strong day-of-week pattern + holiday spike at the mid-point.',
+  bidding_changes: 'Meta bids cut 40%, causing CPM drop + CVR/quality erosion.',
+};
 
-function getVals() {
-  return {
-    roasTarget: parseFloat(document.getElementById('roas-target').value),
-    roasActual: parseFloat(document.getElementById('roas-actual').value),
-    budget: parseFloat(document.getElementById('budget').value),
-    util: parseFloat(document.getElementById('utilization').value),
-    cvr: parseFloat(document.getElementById('cvr').value),
-    cvrBase: parseFloat(document.getElementById('cvr-base').value),
-    cpc: parseFloat(document.getElementById('cpc').value),
-    cpcBase: parseFloat(document.getElementById('cpc-base').value),
+const BASE_CPM   = {Google:8.5, Meta:6.2, TikTok:4.1, LinkedIn:16.0};
+const BASE_CVR   = {Google:0.042, Meta:0.031, TikTok:0.018, LinkedIn:0.055};
+const BASE_CTR   = {Google:0.060, Meta:0.040, TikTok:0.030, LinkedIn:0.025};
+const BASE_AOV   = {Google:125, Meta:95, TikTok:72, LinkedIn:210};
+const BASE_SPEND = {Google:5200, Meta:4100, TikTok:2300, LinkedIn:1800};
+const GEO_MULT   = {US:1.00, UK:0.88, DE:0.82, FR:0.78, AU:0.92};
+const AUD_CVR    = {Prospecting:0.80, Retargeting:1.60, Lookalike:1.20};
+const AUD_SPD    = {Prospecting:1.20, Retargeting:0.60, Lookalike:0.80};
+const DOW_MULT   = [1.05,1.15,1.20,1.25,1.35,0.75,0.65];
+
+const PIPE_STEPS = [
+  {icon:'👁',  label:'Observer',       key:'observer'},
+  {icon:'⚖️',  label:'Reasoning',      key:'reasoning'},
+  {icon:'🎯',  label:'Context',        key:'context'},
+  {icon:'📝',  label:'Explanation',    key:'explanation'},
+  {icon:'💡',  label:'Recommend',      key:'recommend'},
+  {icon:'⚙️',  label:'Execution',      key:'execution'},
+];
+
+// ═══════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════
+const S = {
+  rawData:[],
+  anomalies:[],
+  selectedIdx:null,
+  pipeline:{},      // anomalyKey → {attribution,verdict,explanation,recommendations}
+  auditLog:[],
+  execResults:{},   // actionId → result
+  activeTab:'trends',
+  filters:{channels:[...CHANNELS],geos:[...GEOS],audiences:[...AUDIENCES],blockedChannels:[]},
+  sortCol:'zScore', sortDir:-1,
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// PRNG (Mulberry32 — seeded)
+// ═══════════════════════════════════════════════════════════════════════
+function createRNG(seed){
+  let s=seed>>>0;
+  return function(){
+    s=s+0x6D2B79F5|0;
+    let t=Math.imul(s^s>>>15,1|s);
+    t=t+Math.imul(t^t>>>7,61|t)^t;
+    return((t^t>>>14)>>>0)/4294967296;
+  };
+}
+function makeNormal(rng){
+  return function(){
+    let u,v;
+    do{u=rng();}while(u===0);
+    do{v=rng();}while(v===0);
+    return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
   };
 }
 
-function buildSparkline(roasActual, roasTarget) {
-  const el = document.getElementById('sparkline');
-  el.innerHTML = '';
-  const vals = [];
-  for (let i = 0; i < 14; i++) {
-    const noise = (Math.random() - 0.5) * 0.6;
-    const trend = i < 10 ? roasTarget * 0.92 : roasActual;
-    vals.push(Math.max(0.5, trend + noise));
+// ═══════════════════════════════════════════════════════════════════════
+// MATH UTILITIES
+// ═══════════════════════════════════════════════════════════════════════
+const mean = a => a.reduce((s,v)=>s+v,0)/a.length;
+function stddev(a){
+  const m=mean(a); return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/a.length);
+}
+function slope(arr){
+  const n=arr.length; if(n<2) return 0;
+  const mx=mean(arr.map((_,i)=>i)), my=mean(arr);
+  let num=0,den=0;
+  for(let i=0;i<n;i++){num+=(i-mx)*(arr[i]-my);den+=(i-mx)**2;}
+  return den<1e-12?0:num/den;
+}
+function changepointScore(series){
+  const n=series.length; if(n<22) return 0;
+  const r7=series.slice(-7), p14=series.slice(-21,-7);
+  const sr=slope(r7), sp=slope(p14);
+  if(Math.abs(sp)<1e-9){const am=mean(series.map(Math.abs))||1;return Math.min(1,Math.abs(sr)/am);}
+  const flip=(Math.sign(sr)!==Math.sign(sp))?1:0;
+  const mag=Math.min(1,Math.abs(sr-sp)/(Math.abs(sp)+1e-9));
+  return 0.5*flip+0.5*mag;
+}
+const clamp=(v,lo,hi)=>Math.min(Math.max(v,lo),hi);
+const fmt=(v,d=4)=>typeof v==='number'?v.toFixed(d):v;
+const fmtPct=(v,d=1)=>(v>=0?'+':'')+v.toFixed(d)+'%';
+const uid=()=>Math.random().toString(36).slice(2,10);
+
+// ═══════════════════════════════════════════════════════════════════════
+// DATA SIMULATOR
+// ═══════════════════════════════════════════════════════════════════════
+function generateData(scenario='normal', days=90, seed=42){
+  const rng=createRNG(seed);
+  const rn=makeNormal(rng);
+  const base=new Date(2025,9,1);
+  const anomStart=Math.floor(days*0.70);
+  const rows=[];
+
+  for(let di=0;di<days;di++){
+    const date=new Date(base); date.setDate(date.getDate()+di);
+    const inA=di>=anomStart;
+    const ap=inA?(di-anomStart)/Math.max(1,days-anomStart):0;
+    const dow=(date.getDay()+6)%7; // Mon=0
+
+    for(const ch of CHANNELS){
+      for(const geo of GEOS){
+        for(const aud of AUDIENCES){
+          let cpm  =BASE_CPM[ch]*GEO_MULT[geo];
+          let cvr  =BASE_CVR[ch]*AUD_CVR[aud];
+          let ctr  =BASE_CTR[ch];
+          let aov  =BASE_AOV[ch];
+          let spend=BASE_SPEND[ch]/(GEOS.length*AUDIENCES.length)*GEO_MULT[geo]*AUD_SPD[aud];
+
+          if(scenario==='seasonality'){
+            const f=DOW_MULT[dow];
+            cpm*=f; spend*=f;
+            if(di>=38&&di<=45){spend*=1.45;cpm*=1.25;cvr*=1.10;}
+          }
+          if(inA){
+            if(scenario==='cpm_inflation'&&ch==='Google'&&geo==='US'){cpm*=(1+0.55*ap);}
+            else if(scenario==='cvr_drop'&&aud==='Prospecting'){cvr*=Math.max(0.25,1-0.72*ap);}
+            else if(scenario==='mix_shift'){
+              if(ch==='Meta')spend*=(1+0.80*ap);
+              if(ch==='Google')spend*=Math.max(0.35,1-0.60*ap);
+            } else if(scenario==='bidding_changes'&&ch==='Meta'){
+              cpm*=Math.max(0.55,1-0.40*ap);
+              cvr*=Math.max(0.60,1-0.35*ap);
+              ctr*=Math.max(0.70,1-0.25*ap);
+            }
+          }
+
+          cpm  *=(1+rn()*0.055); cvr*=(1+rn()*0.100);
+          ctr  *=(1+rn()*0.080); aov*=(1+rn()*0.110); spend*=(1+rn()*0.070);
+
+          cpm  =Math.max(0.5,cpm);
+          cvr  =clamp(cvr,0.001,0.5);
+          ctr  =clamp(ctr,0.001,0.5);
+          aov  =Math.max(1,aov);
+          spend=Math.max(5,spend);
+
+          const imp  =Math.max(0,Math.floor(spend/cpm*1000));
+          const clk  =Math.max(0,Math.floor(imp*ctr));
+          const conv =Math.max(0,Math.floor(clk*cvr));
+          const rev  =Math.max(0,conv*aov);
+          const roas =spend>0?rev/spend:0;
+
+          rows.push({
+            date,dayIdx:di,channel:ch,geo,audience:aud,
+            spend:+spend.toFixed(2), impressions:imp, clicks:clk,
+            conversions:conv, revenue:+rev.toFixed(2),
+            cpm:+cpm.toFixed(4), cvr:+cvr.toFixed(6),
+            ctr:+ctr.toFixed(6), aov:+aov.toFixed(2),
+            roas:+roas.toFixed(4), cpa:conv>0?+(spend/conv).toFixed(2):0,
+          });
+        }
+      }
+    }
   }
-  const max = Math.max(...vals);
-  vals.forEach((v, i) => {
-    const bar = document.createElement('div');
-    bar.className = 'spark-bar' + (v < roasTarget * 0.85 ? ' alert' : '');
-    bar.style.height = Math.round((v / max) * 100) + '%';
-    el.appendChild(bar);
+  return rows;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AGENT 1 — OBSERVER
+// ═══════════════════════════════════════════════════════════════════════
+function observerDetect(data, lookback, recent, zThr){
+  const segs={};
+  for(const r of data){
+    const k=`${r.channel}|${r.geo}|${r.audience}`;
+    if(!segs[k])segs[k]={channel:r.channel,geo:r.geo,audience:r.audience,rows:[]};
+    segs[k].rows.push(r);
+  }
+  const out=[];
+  for(const [,seg] of Object.entries(segs)){
+    const rows=seg.rows.slice().sort((a,b)=>a.dayIdx-b.dayIdx);
+    if(rows.length<lookback+recent) continue;
+    const hist=rows.slice(-(lookback+recent),-recent);
+    const rec =rows.slice(-recent);
+    for(const m of METRICS){
+      const hv=hist.map(r=>r[m]).filter(v=>isFinite(v)&&v>=0);
+      const rv=rec.map(r=>r[m]).filter(v=>isFinite(v)&&v>=0);
+      if(hv.length<5||rv.length<1) continue;
+      const hm=mean(hv), hs=stddev(hv), rm=mean(rv);
+      if(hs<1e-8) continue;
+      const z=(rm-hm)/hs;
+      if(Math.abs(z)<zThr) continue;
+      const cp=changepointScore(rows.map(r=>r[m]));
+      const az=Math.abs(z);
+      const sev=az>=3.5||(az>=2.5&&cp>0.5)?'high':az>=2.5||cp>0.4?'medium':'low';
+      out.push({
+        segment:`${seg.channel} / ${seg.geo} / ${seg.audience}`,
+        channel:seg.channel, geo:seg.geo, audience:seg.audience,
+        metric:m, zScore:+z.toFixed(3), severity:sev,
+        direction:z>0?'increase':'decrease',
+        historicalMean:+hm.toFixed(6), recentMean:+rm.toFixed(6),
+        pctChange:+((rm-hm)/(Math.abs(hm)+1e-9)*100).toFixed(2),
+      });
+    }
+  }
+  return out.sort((a,b)=>Math.abs(b.zScore)-Math.abs(a.zScore));
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AGENT 2 — REASONING
+// ═══════════════════════════════════════════════════════════════════════
+function reasoningAttribute(data, anomaly, lookback, recent){
+  const rows=data.filter(r=>r.channel===anomaly.channel&&r.geo===anomaly.geo&&r.audience===anomaly.audience)
+    .sort((a,b)=>a.dayIdx-b.dayIdx);
+  const hist=rows.slice(-(lookback+recent),-recent);
+  const rec =rows.slice(-recent);
+  const sm=(arr,col)=>{const v=arr.map(r=>r[col]).filter(v=>v>0&&isFinite(v));return v.length?mean(v):1e-6;};
+  const cols=['roas','cpm','cvr','ctr','aov'];
+  const h={},r={};
+  for(const c of cols){h[c]=sm(hist,c);r[c]=sm(rec,c);}
+  const td=r.roas-h.roas, eps=1e-9;
+  const lp={
+    CPM:-Math.log(Math.max(eps,r.cpm)/Math.max(eps,h.cpm)),
+    CVR: Math.log(Math.max(eps,r.cvr)/Math.max(eps,h.cvr)),
+    CTR: Math.log(Math.max(eps,r.ctr)/Math.max(eps,h.ctr)),
+    AOV: Math.log(Math.max(eps,r.aov)/Math.max(eps,h.aov)),
+  };
+  const cm={CPM:'cpm',CVR:'cvr',CTR:'ctr',AOV:'aov'};
+  const lt=Object.values(lp).reduce((s,v)=>s+v,0);
+  let ex=0;
+  const drivers=Object.entries(lp).map(([name,lv])=>{
+    const col=cm[name];
+    const ac=Math.abs(lt)>eps?lv/lt*td:0;
+    const pc=Math.abs(lt)>eps?lv/lt*100:0;
+    ex+=ac;
+    return{driver:name,contributionAbs:+ac.toFixed(6),contributionPct:+pc.toFixed(2),
+      historicalValue:+h[col].toFixed(6),recentValue:+r[col].toFixed(6),
+      deltaPct:+((r[col]-h[col])/(Math.abs(h[col])+eps)*100).toFixed(2)};
+  });
+  return{segment:anomaly.segment,metric:anomaly.metric,totalChange:+td.toFixed(6),
+    baselineValue:+h.roas.toFixed(6),recentValue:+r.roas.toFixed(6),
+    drivers,residual:+(td-ex).toFixed(6),method:'log_multiplicative_decomposition'};
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AGENT 3 — CONTEXT
+// ═══════════════════════════════════════════════════════════════════════
+function contextEvaluate(data, anomaly, lookback, recent, k=2.0){
+  const m=anomaly.metric;
+  const rows=data.filter(r=>r.channel===anomaly.channel&&r.geo===anomaly.geo&&r.audience===anomaly.audience)
+    .sort((a,b)=>a.dayIdx-b.dayIdx);
+  const hist=rows.slice(-(lookback+recent),-recent);
+  const rec =rows.slice(-recent);
+  const hv=hist.map(r=>r[m]);
+  const hm=mean(hv), hs=Math.max(stddev(hv),hm*0.05);
+  const actual=mean(rec.map(r=>r[m]));
+  const lo=hm-k*hs, hi=hm+k*hs;
+
+  const maxDi=Math.max(...data.map(r=>r.dayIdx));
+  const peerRows=data.filter(r=>r.channel===anomaly.channel&&r.audience===anomaly.audience&&r.geo!==anomaly.geo&&r.dayIdx>maxDi-recent);
+  const ps={current:+actual.toFixed(4)};
+  [...new Set(peerRows.map(r=>r.geo))].forEach(g=>{
+    const pv=peerRows.filter(r=>r.geo===g).map(r=>r[m]);
+    if(pv.length)ps[`${anomaly.channel}/${g}`]=+mean(pv).toFixed(4);
+  });
+
+  let label;
+  if(actual>=lo&&actual<=hi) label='within_expected';
+  else if(actual<lo){label=(m==='roas'||m==='cvr')?'issue':m==='cpm'?'opportunity':'watch';}
+  else {label=(m==='roas'||m==='cvr')?'opportunity':m==='cpm'?'issue':'watch';}
+
+  const bw=Math.max(1e-9,hi-lo);
+  const dev=Math.abs(actual-clamp(actual,lo,hi));
+  const conf=Math.min(1,0.5+0.5*(dev/bw));
+  const peerVals=Object.entries(ps).filter(([k])=>k!=='current').map(([,v])=>v);
+  const pm=peerVals.length?mean(peerVals):hm;
+
+  return{label,confidence:+conf.toFixed(3),expectedLower:+lo.toFixed(4),expectedUpper:+hi.toFixed(4),
+    actualValue:+actual.toFixed(4),peerComparison:ps,
+    reasoning:`Actual ${m.toUpperCase()} (${actual.toFixed(4)}) vs expected [${lo.toFixed(4)}, ${hi.toFixed(4)}]. Peer mean: ${pm.toFixed(4)}.`};
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AGENT 4 — EXPLANATION
+// ═══════════════════════════════════════════════════════════════════════
+function explanationGenerate(anomaly, attr, verdict){
+  const m=anomaly.metric.toUpperCase();
+  const dir=anomaly.direction==='increase'?'increased':'decreased';
+  const top=[...attr.drivers].sort((a,b)=>Math.abs(b.contributionAbs)-Math.abs(a.contributionAbs))[0];
+  const headline=`${m} ${dir} ${Math.abs(anomaly.pctChange).toFixed(1)}% in ${anomaly.segment} — ${verdict.label.replace(/_/g,' ').toUpperCase()}`;
+
+  let nar=`Over the past 7 days, **${m}** in **${anomaly.segment}** has ${dir} by **${Math.abs(anomaly.pctChange).toFixed(1)}%** (from ${anomaly.historicalMean.toFixed(4)} to ${anomaly.recentMean.toFixed(4)}), a deviation of **${anomaly.zScore>=0?'+':''}${anomaly.zScore.toFixed(2)}σ** from the ${Math.round(lookback())}‑day baseline.`;
+
+  if(top){
+    nar+=`\n\nThe dominant driver is **${top.driver}**, which changed by ${top.deltaPct>=0?'+':''}${top.deltaPct.toFixed(1)}% and explains ~${Math.abs(top.contributionPct).toFixed(0)}% of the total ${m} shift.`;
+    const others=[...attr.drivers].sort((a,b)=>Math.abs(b.contributionAbs)-Math.abs(a.contributionAbs)).slice(1).filter(d=>Math.abs(d.contributionPct)>5);
+    if(others.length) nar+=` Secondary contributors: ${others.slice(0,2).map(d=>`${d.driver} (${d.deltaPct>=0?'+':''}${d.deltaPct.toFixed(1)}%)`).join(', ')}.`;
+  }
+  nar+=`\n\nContext verdict: **${verdict.label.replace(/_/g,' ')}** (confidence ${(verdict.confidence*100).toFixed(0)}%). ${verdict.reasoning}`;
+
+  const caveats=[];
+  if(Math.abs(attr.residual)>0.30*(Math.abs(attr.totalChange)+1e-9))
+    caveats.push(`Residual (${attr.residual>=0?'+':''}${attr.residual.toFixed(4)}) is large — external factors may be contributing.`);
+  if(Math.abs(anomaly.zScore)<2.5) caveats.push('Borderline signal — monitor 2–3 more days before acting.');
+  if(anomaly.severity==='high') caveats.push('High-severity — validate with platform raw data before executing changes.');
+
+  return{headline,narrative:nar,confidence:verdict.confidence,caveats};
+}
+function lookback(){return+document.getElementById('sl-days').value - +document.getElementById('sl-recent').value;}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AGENT 5 — RECOMMENDATION
+// ═══════════════════════════════════════════════════════════════════════
+function recommendGenerate(anomaly, attr, verdict, goals, gr){
+  const {metric:m,direction:dir,channel:ch,geo,audience:aud,segment:seg}=anomaly;
+  const {label}=verdict;
+  const maxBid=gr.maxBid/100, maxSpend=gr.maxSpend/100, blocked=gr.blockedChannels||[];
+  const chk=(b,s)=>{const v=[];if(blocked.includes(ch))v.push(`Channel '${ch}' is blocked.`);if(b>maxBid)v.push(`Bid Δ ${(b*100).toFixed(0)}% > max ${(maxBid*100).toFixed(0)}%.`);if(s>maxSpend)v.push(`Spend Δ ${(s*100).toFixed(0)}% > max ${(maxSpend*100).toFixed(0)}%.`);return v;};
+  const top=[...attr.drivers].sort((a,b)=>Math.abs(b.contributionAbs)-Math.abs(a.contributionAbs))[0];
+  const acts=[];
+
+  if(m==='roas'&&(label==='issue'||label==='watch')&&dir==='decrease'){
+    if(top&&top.driver==='CPM'){
+      const cut=Math.min(maxBid,0.15);
+      acts.push({actionId:uid(),actionType:'bid_adjust',targetSegment:seg,
+        description:`Cut bids ${(cut*100).toFixed(0)}% in ${seg} to counter CPM inflation`,
+        expectedRoasDelta:+(Math.abs(anomaly.pctChange)*0.35/100).toFixed(4),
+        expectedSpendDelta:+(-cut*0.60).toFixed(4),
+        riskLevel:cut<=0.10?'low':'medium',guardrailViolations:chk(cut,0),
+        payload:{type:'bid_adjust',channel:ch,geo,audience:aud,deltaPct:-cut,reason:'cpm_inflation'},
+        rationale:`CPM accounts for ${Math.abs(top.contributionPct).toFixed(0)}% of ROAS decline. Bid reduction lowers clearing price at cost of impression share.`});
+    }
+    if(top&&top.driver==='CVR'){
+      acts.push({actionId:uid(),actionType:'budget_realloc',targetSegment:seg,
+        description:`Reallocate 20% budget from ${seg} → Retargeting`,
+        expectedRoasDelta:+(Math.abs(attr.totalChange)*0.25).toFixed(4),expectedSpendDelta:-0.20,
+        riskLevel:'medium',guardrailViolations:chk(0,0.20),
+        payload:{type:'budget_realloc',channel:ch,geo,audience:aud,deltaPct:-0.20,reason:'cvr_drop',reallocateTo:'Retargeting'},
+        rationale:`CVR drives ${Math.abs(top.contributionPct).toFixed(0)}% of ROAS decline. Shifting to Retargeting hedges while root cause is diagnosed.`});
+    }
+    if(goals.riskTolerance==='low'||anomaly.severity==='high')
+      acts.push(monitorAct(seg,m,'High-severity — human review required before automated action.'));
+  } else if(m==='roas'&&label==='opportunity'&&dir==='increase'){
+    const sc=Math.min(maxSpend,0.20);
+    acts.push({actionId:uid(),actionType:'scale',targetSegment:seg,
+      description:`Scale spend +${(sc*100).toFixed(0)}% in ${seg} — ROAS elevated`,
+      expectedRoasDelta:+(-anomaly.pctChange*0.04/100).toFixed(4),expectedSpendDelta:sc,
+      riskLevel:'medium',guardrailViolations:chk(0,sc),
+      payload:{type:'scale',channel:ch,geo,audience:aud,deltaPct:sc,reason:'roas_opportunity'},
+      rationale:`ROAS is ${anomaly.pctChange.toFixed(1)}% above baseline. Scaling captures incremental revenue while efficiency holds.`});
+  } else if(m==='cpm'&&label==='issue'&&dir==='increase'){
+    const cut=Math.min(maxBid,0.12);
+    acts.push({actionId:uid(),actionType:'bid_adjust',targetSegment:seg,
+      description:`Reduce bids ${(cut*100).toFixed(0)}% in ${seg} — CPM spike`,
+      expectedRoasDelta:+(anomaly.pctChange*0.25/100).toFixed(4),expectedSpendDelta:+(-cut*0.50).toFixed(4),
+      riskLevel:'low',guardrailViolations:chk(cut,0),
+      payload:{type:'bid_adjust',channel:ch,geo,audience:aud,deltaPct:-cut,reason:'cpm_spike'},
+      rationale:`CPM is ${anomaly.pctChange.toFixed(1)}% above baseline.`});
+  } else if(m==='cvr'&&label==='issue'&&dir==='decrease'){
+    acts.push({actionId:uid(),actionType:'pause',targetSegment:seg,
+      description:`Pause low-CVR creatives in ${seg}; shift budget to Retargeting`,
+      expectedRoasDelta:+(Math.abs(anomaly.pctChange)*0.20/100).toFixed(4),expectedSpendDelta:-0.15,
+      riskLevel:'medium',guardrailViolations:chk(0,0.15),
+      payload:{type:'pause',channel:ch,geo,audience:aud,deltaPct:-0.15,reason:'cvr_drop'},
+      rationale:'CVR decline may indicate creative fatigue. Pause reduces waste while diagnosing.'});
+  }
+  if(!acts.length) acts.push(monitorAct(seg,m,'Signal does not meet automated-action threshold under current guardrails.'));
+  return acts;
+}
+function monitorAct(seg,m,rat){return{actionId:uid(),actionType:'monitor',targetSegment:seg,
+  description:`Monitor ${m.toUpperCase()} in ${seg} for daily review`,
+  expectedRoasDelta:0,expectedSpendDelta:0,riskLevel:'low',guardrailViolations:[],
+  payload:{type:'monitor',segment:seg,metric:m},rationale:rat};}
+
+// ═══════════════════════════════════════════════════════════════════════
+// AGENT 6 — EXECUTION
+// ═══════════════════════════════════════════════════════════════════════
+function executionRun(action, mode, approved){
+  const now=new Date().toISOString().replace('T',' ').slice(0,19);
+  let status,outcome;
+  if(mode==='recommend_only'){status='pending';outcome={message:'Recommend-only mode — no action taken.'};}
+  else if(mode==='human_in_loop'){
+    status=approved?'approved':'denied';
+    outcome=approved?simOutcome(action):{message:'Action denied by operator.'};
+  } else if(mode==='auto_low_risk'){
+    if(action.riskLevel==='low'&&!action.guardrailViolations.length){status='auto_executed';outcome=simOutcome(action);}
+    else if(approved){status='approved';outcome=simOutcome(action);}
+    else{status='pending';outcome={message:'Awaiting human approval (medium/high risk).'};}
+  }
+  const rb={...action.payload};if('deltaPct'in rb)rb.deltaPct=-rb.deltaPct;rb.reason=`rollback_of_${action.actionId}`;
+  const res={actionId:action.actionId,status,mode,executedAt:now,simulatedOutcome:outcome,rollbackPayload:rb};
+  S.auditLog.push({timestamp:now,actionId:action.actionId,actionType:action.actionType,
+    segment:action.targetSegment,status,mode,actor:status==='auto_executed'?'auto':'operator',
+    riskLevel:action.riskLevel,description:action.description});
+  return res;
+}
+function executionRollback(actionId){
+  const orig=S.execResults[actionId]; if(!orig) return null;
+  const now=new Date().toISOString().replace('T',' ').slice(0,19);
+  const rbId=`ROLLBACK_${actionId}`;
+  const res={actionId:rbId,status:'rolled_back',mode:orig.mode,executedAt:now,
+    simulatedOutcome:{message:`Rollback of ${actionId} applied.`,inversePayload:orig.rollbackPayload},rollbackPayload:{}};
+  S.auditLog.push({timestamp:now,actionId:rbId,actionType:'rollback',segment:'',status:'rolled_back',
+    mode:orig.mode,actor:'operator',riskLevel:'low',description:`Rollback of action ${actionId}`});
+  return res;
+}
+function simOutcome(action){
+  const n=(Math.random()-0.5)*0.5;
+  const ri=action.expectedRoasDelta*(1+n), si=action.expectedSpendDelta*(1+n*0.5);
+  return{simulatedRoasDelta:+ri.toFixed(5),simulatedSpendDelta:+si.toFixed(5),
+    message:`Action '${action.actionType}' executed. Est. ROAS impact: ${ri>=0?'+':''}${ri.toFixed(5)}, spend: ${(si*100).toFixed(1)}%.`};
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// CHART HELPERS (Plotly)
+// ═══════════════════════════════════════════════════════════════════════
+const DK={paper_bgcolor:'#0a0a0f',plot_bgcolor:'#12121a',font:{color:'#e8e6ff',family:'IBM Plex Mono,monospace',size:11},
+  xaxis:{gridcolor:'#1a1a26',linecolor:'#1a1a26',zeroline:false},
+  yaxis:{gridcolor:'#1a1a26',linecolor:'#1a1a26',zeroline:false},
+  margin:{l:55,r:20,t:36,b:40},legend:{orientation:'h',y:1.12,font:{size:10}}};
+
+function chartTrend(divId, data, anomaly, metric, recentDays){
+  const rows=data.filter(r=>r.channel===anomaly.channel&&r.geo===anomaly.geo&&r.audience===anomaly.audience)
+    .sort((a,b)=>a.dayIdx-b.dayIdx);
+  const dates=rows.map(r=>r.date.toISOString().slice(0,10));
+  const vals=rows.map(r=>r[metric]);
+  const ma7=vals.map((_,i)=>{const sl=vals.slice(Math.max(0,i-6),i+1);return mean(sl);});
+  const anomDate=rows.slice(-recentDays)[0]?.date.toISOString().slice(0,10);
+
+  const shapes=anomDate?[{type:'rect',xref:'x',yref:'paper',x0:anomDate,x1:dates[dates.length-1],y0:0,y1:1,
+    fillcolor:'rgba(255,107,107,0.08)',line:{width:0}}]:[];
+
+  Plotly.newPlot(divId,[
+    {x:dates,y:vals,mode:'lines',name:metric.toUpperCase(),line:{color:'#7c6eff',width:2}},
+    {x:dates,y:ma7,mode:'lines',name:'7-day MA',line:{color:'#ffb347',width:1.5,dash:'dot'}},
+  ],{...DK,title:{text:`${metric.toUpperCase()} — ${anomaly.channel} / ${anomaly.geo} / ${anomaly.audience}`,font:{size:12}},
+    height:260,shapes,annotations:anomDate?[{x:anomDate,y:1,xref:'x',yref:'paper',text:'Anomaly',
+      showarrow:false,font:{color:'#ff6b6b',size:9},xanchor:'left'}]:[]},{responsive:true});
+}
+
+function chartWaterfall(divId, attr){
+  const labels=attr.drivers.map(d=>d.driver).concat(['Residual']);
+  const vals=attr.drivers.map(d=>d.contributionAbs).concat([attr.residual]);
+  Plotly.newPlot(divId,[{type:'waterfall',orientation:'v',measure:labels.map(()=>'relative'),
+    x:labels,y:vals,text:vals.map(v=>`${v>=0?'+':''}${v.toFixed(5)}`),textposition:'outside',
+    connector:{line:{color:'#333',dash:'dot',width:1}},
+    decreasing:{marker:{color:'#ff6b6b'}},increasing:{marker:{color:'#00e5a0'}},
+    totals:{marker:{color:'#7c6eff'}}}],
+    {...DK,title:{text:`Driver Attribution — ROAS Δ = ${attr.totalChange>=0?'+':''}${attr.totalChange.toFixed(5)}`,font:{size:12}},
+      height:320},{responsive:true});
+}
+
+function chartGauge(divId, verdict, metric){
+  const lo=verdict.expectedLower, hi=verdict.expectedUpper, val=verdict.actualValue;
+  const col={within_expected:'#00e5a0',watch:'#ffb347',issue:'#ff6b6b',opportunity:'#7c6eff'}[verdict.label];
+  Plotly.newPlot(divId,[{type:'indicator',mode:'gauge+number+delta',value:val,
+    delta:{reference:(lo+hi)/2,valueformat:'.4f'},number:{valueformat:'.4f'},
+    gauge:{axis:{range:[Math.min(lo*0.8,val*0.85),Math.max(hi*1.2,val*1.15)],tickformat:'.3f'},
+      bar:{color:col},steps:[{range:[lo,hi],color:'rgba(0,229,160,0.1)'}]},
+    title:{text:`${metric.toUpperCase()}: ${verdict.label.replace(/_/g,' ')}`,font:{size:12,color:'#e8e6ff'}}}],
+    {paper_bgcolor:'#12121a',font:{color:'#e8e6ff',family:'IBM Plex Mono'},height:240,margin:{l:20,r:20,t:50,b:10}},{responsive:true});
+}
+
+function chartPeer(divId, verdict, metric){
+  const entries=Object.entries(verdict.peerComparison);
+  const labels=entries.map(([k])=>k), vals=entries.map(([,v])=>v);
+  const colors=labels.map(l=>l==='current'?'#ffb347':'#7c6eff');
+  Plotly.newPlot(divId,[{type:'bar',x:vals,y:labels,orientation:'h',marker:{color:colors},
+    text:vals.map(v=>v.toFixed(4)),textposition:'outside'}],
+    {...DK,title:{text:`Peer Comparison — ${metric.toUpperCase()}`,font:{size:12}},height:240,
+      xaxis:{...DK.xaxis,title:''},yaxis:{...DK.yaxis,title:''}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UI — PIPELINE STEPS
+// ═══════════════════════════════════════════════════════════════════════
+function renderPipelineSteps(activeKey='',doneKeys=[]){
+  const el=document.getElementById('pipeline-steps');
+  el.innerHTML=PIPE_STEPS.map((s,i)=>{
+    const cls=doneKeys.includes(s.key)?'done':s.key===activeKey?'active':'';
+    return (i>0?'<div class="pipe-arrow"></div>':'')+
+      `<div class="pipe-step ${cls}"><div class="pipe-icon">${s.icon}</div><div class="pipe-label ${cls}">${s.label}</div></div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UI — CHIPS & RADIOS
+// ═══════════════════════════════════════════════════════════════════════
+function makeChips(containerId, items, activeSet, onChange){
+  const el=document.getElementById(containerId);
+  el.innerHTML=items.map(item=>`<div class="chip ${activeSet.has(item)?'on':''}" data-val="${item}">${item}</div>`).join('');
+  el.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      const v=chip.dataset.val;
+      if(activeSet.has(v)){if(activeSet.size>1){activeSet.delete(v);chip.classList.remove('on');}}
+      else{activeSet.add(v);chip.classList.add('on');}
+      onChange();
+    });
   });
 }
 
-function buildAnomalies(v) {
-  const items = [];
-  const roasDelta = pct(v.roasActual, v.roasTarget);
-  if (v.roasActual < v.roasTarget * 0.85)
-    items.push({ sev: 'HIGH', text: `ROAS ${fmt(v.roasActual)}× is ${Math.abs(roasDelta)}% below target ${fmt(v.roasTarget)}×`, metric: 'ROAS · Primary KPI' });
-  else if (v.roasActual < v.roasTarget)
-    items.push({ sev: 'MED', text: `ROAS ${fmt(v.roasActual)}× is below target ${fmt(v.roasTarget)}×`, metric: 'ROAS · Primary KPI' });
-
-  const cvrDelta = pct(v.cvr, v.cvrBase);
-  if (v.cvr < v.cvrBase * 0.85)
-    items.push({ sev: 'HIGH', text: `CVR dropped ${Math.abs(cvrDelta)}% from baseline (${fmt(v.cvrBase)}% → ${fmt(v.cvr)}%)`, metric: 'CVR · Conversion Rate' });
-  else if (v.cvr < v.cvrBase)
-    items.push({ sev: 'MED', text: `CVR ${fmt(v.cvr)}% is below baseline ${fmt(v.cvrBase)}%`, metric: 'CVR · Conversion Rate' });
-
-  const cpcDelta = pct(v.cpc, v.cpcBase);
-  if (v.cpc > v.cpcBase * 1.2)
-    items.push({ sev: 'HIGH', text: `CPC inflated +${cpcDelta}% above baseline ($${fmt(v.cpcBase)} → $${fmt(v.cpc)})`, metric: 'CPC · Cost Per Click' });
-  else if (v.cpc > v.cpcBase)
-    items.push({ sev: 'LOW', text: `CPC $${fmt(v.cpc)} slightly above baseline $${fmt(v.cpcBase)}`, metric: 'CPC · Cost Per Click' });
-
-  if (v.util > 98)
-    items.push({ sev: 'MED', text: `Budget utilization ${fmt(v.util,0)}% — risk of missed impressions at peak hours`, metric: 'Budget · Pacing' });
-
-  if (items.length === 0)
-    items.push({ sev: 'LOW', text: 'No critical anomalies detected. Performance within acceptable bands.', metric: 'System · Health Check' });
-
-  const el = document.getElementById('anomaly-list');
-  el.innerHTML = items.map(it => `
-    <div class="anomaly-item ${it.sev === 'HIGH' ? 'high' : it.sev === 'MED' ? 'med' : 'low'}">
-      <span class="anomaly-severity">${it.sev}</span>
-      <div>
-        <div class="anomaly-text">${it.text}</div>
-        <div class="anomaly-metric">${it.metric}</div>
-      </div>
-    </div>`).join('');
-}
-
-function buildMetrics(v) {
-  const rows = [
-    { name: 'ROAS', val: fmt(v.roasActual) + '×', ref: fmt(v.roasTarget) + '× target', dir: v.roasActual >= v.roasTarget ? 'down' : 'up' },
-    { name: 'CVR', val: fmt(v.cvr) + '%', ref: fmt(v.cvrBase) + '% base', dir: v.cvr >= v.cvrBase ? 'down' : 'up' },
-    { name: 'CPC', val: '$' + fmt(v.cpc), ref: '$' + fmt(v.cpcBase) + ' base', dir: v.cpc <= v.cpcBase ? 'down' : 'up' },
-    { name: 'Budget pacing', val: fmt(v.util,0) + '%', ref: '85–95% ideal', dir: (v.util >= 85 && v.util <= 95) ? 'down' : 'up' },
-    { name: 'Daily spend', val: '$' + (v.budget).toLocaleString(), ref: 'allocated budget', dir: 'down' },
-  ];
-
-  document.getElementById('metrics-delta').innerHTML = rows.map(r => `
-    <div class="metric-row">
-      <span class="metric-name">${r.name}</span>
-      <div style="text-align:right">
-        <div class="metric-val ${r.dir}">${r.val}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace">${r.ref}</div>
-      </div>
-    </div>`).join('');
-}
-
-function buildTrace(v) {
-  const traces = [
-    ['00:00', 'OBSERVER', 'Ingesting 14-day campaign telemetry across 4 auction partners'],
-    ['00:01', 'OBSERVER', `Detected: ROAS ${fmt(v.roasActual)}× vs target ${fmt(v.roasTarget)}×, CVR ${fmt(v.cvr)}%, CPC $${fmt(v.cpc)}`],
-    ['00:02', 'REASONING', 'Hypothesis: CPC inflation driving ROAS shortfall, CVR drop compounding effect'],
-    ['00:03', 'REASONING', `Root cause chain: ↑CPC +${pct(v.cpc,v.cpcBase)}% × ↓CVR ${pct(v.cvr,v.cvrBase)}% = ↓ROAS ${pct(v.roasActual,v.roasTarget)}%`],
-    ['00:04', 'CONTEXT', 'Checking bid floor constraints, budget guardrails, and partner auction policies'],
-    ['00:05', 'CONTEXT', 'Guardrail: Max bid reduction 25%/day. Budget change cap: ±15% per action'],
-    ['00:06', 'EXPLAIN', 'Performance decline correlates with weekend CPM spike + competitor bid increase'],
-    ['00:07', 'RECOMMEND', 'Generating guardrail-bounded bid and budget adjustment recommendations'],
-    ['00:08', 'EXECUTE', 'Recommendations staged for human review before execution'],
-  ];
-  document.getElementById('trace-log').innerHTML = traces.map(t => `
-    <div class="trace-line">
-      <span class="trace-time">${t[0]}</span>
-      <span class="trace-agent">[${t[1]}]</span>
-      <span class="trace-msg">${t[2]}</span>
-    </div>`).join('');
-}
-
-function buildRecs(v) {
-  const recs = [];
-
-  if (v.roasActual < v.roasTarget * 0.9) {
-    const bidAdj = Math.min(25, Math.round((1 - v.roasActual / v.roasTarget) * 100 * 0.7));
-    recs.push({
-      cls: '',
-      action: `Reduce bids by ${bidAdj}% on low-ROAS segments`,
-      reason: `CVR × GP × units model indicates over-bidding on bottom-quartile placements. Tightening bids protects margin while maintaining coverage on high-intent queries.`,
-      tags: ['Bid · Guardrail-bounded', `Max reduction: ${bidAdj}%`]
+function makeRadio(containerId, onChange){
+  document.getElementById(containerId).querySelectorAll('.radio-opt').forEach(opt=>{
+    opt.addEventListener('click',()=>{
+      document.getElementById(containerId).querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+      onChange(opt.dataset.val);
     });
-  }
-
-  if (v.cvr < v.cvrBase * 0.9) {
-    recs.push({
-      cls: 'warn-border',
-      action: 'Pause underperforming ad groups with CVR < 1.0%',
-      reason: `CVR drop of ${Math.abs(pct(v.cvr,v.cvrBase))}% signals landing page or audience mismatch. Recommend segment-level CVR diagnosis before bid changes.`,
-      tags: ['Targeting · Audience', 'Requires DS review']
-    });
-  }
-
-  if (v.cpc > v.cpcBase * 1.15) {
-    recs.push({
-      cls: 'warn-border',
-      action: `Set CPC ceiling at $${fmt(v.cpcBase * 1.1)} for volume keywords`,
-      reason: `CPC at $${fmt(v.cpc)} exceeds model-predicted fair value. Auction pressure likely temporary — hard floor preserves budget for high-quality clicks.`,
-      tags: ['CPC · Ceiling', 'Reversible action']
-    });
-  }
-
-  if (v.util > 97) {
-    recs.push({
-      cls: 'green-border',
-      action: 'Increase daily budget by 10% with dayparting shift',
-      reason: 'High utilization during peak hours suggests missed high-intent traffic. Budget increase paired with dayparting concentrates spend on peak conversion windows.',
-      tags: ['Budget · +10%', 'Guardrail: ±15% cap']
-    });
-  }
-
-  recs.push({
-    cls: 'green-border',
-    action: 'Schedule ML model refresh with latest 7-day signal',
-    reason: 'CVR prediction model may be operating on stale conversion signals. Refresh cycle will re-calibrate bid-to-value predictions using current auction dynamics.',
-    tags: ['Model · Refresh', 'SLA: 4h turnaround']
   });
-
-  document.getElementById('rec-list').innerHTML = recs.map(r => `
-    <div class="rec-card ${r.cls}">
-      <div class="rec-action">${r.action}</div>
-      <div class="rec-reason">${r.reason}</div>
-      <div class="rec-impact">
-        ${r.tags.map(t => `<span class="badge">${t}</span>`).join('')}
-      </div>
-    </div>`).join('');
 }
 
-async function animatePipeline() {
-  const steps = ['observe','reason','ctx','explain','rec','exec'];
-  const labels = steps.map(s => document.getElementById('lbl-' + s));
-  const panels = steps.map(s => document.getElementById('step-' + s));
+function getRadio(containerId){
+  return document.getElementById(containerId).querySelector('.radio-opt.selected')?.dataset.val;
+}
 
-  for (let i = 0; i < steps.length; i++) {
-    panels[i].classList.add('active');
-    labels[i].classList.add('active');
-    await sleep(350);
-    panels[i].classList.remove('active');
-    labels[i].classList.remove('active');
-    panels[i].classList.add('done');
-    labels[i].classList.add('done');
+// ═══════════════════════════════════════════════════════════════════════
+// UI — INBOX TABLE
+// ═══════════════════════════════════════════════════════════════════════
+function renderInbox(){
+  const anomalies=S.anomalies;
+  const container=document.getElementById('inbox-container');
+  const actions=document.getElementById('inbox-actions');
+
+  document.getElementById('inbox-sub').textContent=
+    `${S.rawData.length.toLocaleString()} segment-day rows · ${anomalies.length} anomalies detected`;
+
+  if(!anomalies.length){
+    container.innerHTML='<div class="empty-state"><div class="icon">✅</div>No anomalies above threshold. Lower the Z-score slider or pick a scenario with injected anomalies.</div>';
+    actions.style.display='none'; return;
   }
-}
 
-async function animateLoadingBar(ms) {
-  const bar = document.getElementById('loading-bar');
-  const fill = document.getElementById('loading-fill');
-  bar.style.display = 'block';
-  fill.style.width = '0%';
-  await sleep(50);
-  fill.style.width = '90%';
-  fill.style.transition = `width ${ms * 0.8}ms linear`;
-  await sleep(ms * 0.8);
-  fill.style.width = '100%';
-  fill.style.transition = 'width 0.3s ease';
-  await sleep(350);
-  bar.style.display = 'none';
-}
+  const sorted=[...anomalies].sort((a,b)=>S.sortDir*(b[S.sortCol]||0)-(a[S.sortCol]||0)*S.sortDir||S.sortDir*(Math.abs(b.zScore)-Math.abs(a.zScore)));
+  const sevCls={high:'sev-high',medium:'sev-medium',low:'sev-low'};
 
-async function runACMI() {
-  const btn = document.getElementById('run-btn');
-  const badge = document.getElementById('status-badge');
-  btn.disabled = true;
-  btn.textContent = '⏳ Analyzing…';
-  badge.textContent = '● processing';
-  badge.className = 'badge warn';
+  container.innerHTML=`
+  <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+  <table class="inbox-table"><thead><tr>
+    ${[['Sev','severity'],['Segment','segment'],['Metric','metric'],['Dir','direction'],['Z-Score','zScore'],['Δ%','pctChange'],['Hist Mean','historicalMean'],['Recent Mean','recentMean']]
+      .map(([l,k])=>`<th data-col="${k}" title="Sort by ${l}">${l} ${S.sortCol===k?(S.sortDir>0?'↑':'↓'):''}</th>`).join('')}
+  </tr></thead><tbody>
+  ${sorted.map((a,i)=>{
+    const origIdx=S.anomalies.indexOf(a);
+    const sel=S.selectedIdx===origIdx?'selected':'';
+    return `<tr class="anomaly-row ${sel}" data-idx="${origIdx}">
+      <td><span class="sev-pill ${sevCls[a.severity]}">${a.severity}</span></td>
+      <td class="mono" style="font-size:11px">${a.segment}</td>
+      <td class="mono">${a.metric.toUpperCase()}</td>
+      <td>${a.direction==='increase'?'<span class="up">↑</span>':'<span class="down">↓</span>'}</td>
+      <td class="mono ${a.zScore>0?'up':'down'}">${a.zScore>=0?'+':''}${a.zScore.toFixed(2)}σ</td>
+      <td class="mono ${a.pctChange>0?'up':'down'}">${a.pctChange>=0?'+':''}${a.pctChange.toFixed(1)}%</td>
+      <td class="mono">${a.historicalMean.toFixed(4)}</td>
+      <td class="mono">${a.recentMean.toFixed(4)}</td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
 
-  const v = getVals();
-
-  // Reset pipeline
-  ['observe','reason','ctx','explain','rec','exec'].forEach(s => {
-    document.getElementById('step-' + s).className = 'pipe-step';
-    const lbl = document.getElementById('lbl-' + s);
-    lbl.className = 'pipe-label';
+  container.querySelectorAll('.anomaly-row').forEach(row=>{
+    row.addEventListener('click',()=>{
+      S.selectedIdx=+row.dataset.idx;
+      renderInbox();
+      document.getElementById('btn-pipeline').disabled=false;
+      document.getElementById('selected-label').textContent=`Selected: ${S.anomalies[S.selectedIdx].segment} — ${S.anomalies[S.selectedIdx].metric.toUpperCase()}`;
+    });
   });
-
-  document.getElementById('output-section').classList.add('hidden');
-
-  await Promise.all([
-    animatePipeline(),
-    animateLoadingBar(2200)
-  ]);
-
-  buildSparkline(v.roasActual, v.roasTarget);
-  buildAnomalies(v);
-  buildMetrics(v);
-  buildTrace(v);
-  buildRecs(v);
-
-  document.getElementById('output-section').classList.remove('hidden');
-  btn.disabled = false;
-  btn.textContent = '⚡ Run ACMI Analysis';
-  badge.textContent = '● analysis complete';
-  badge.className = 'badge green';
+  container.querySelectorAll('th[data-col]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const col=th.dataset.col;
+      S.sortDir=S.sortCol===col?-S.sortDir:1;
+      S.sortCol=col;
+      renderInbox();
+    });
+  });
+  actions.style.display='flex';
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// UI — DETAIL PANEL TABS
+// ═══════════════════════════════════════════════════════════════════════
+const TAB_DEFS=[
+  {id:'trends',      label:'📈 Trends'},
+  {id:'attribution', label:'⚖️ Attribution'},
+  {id:'context',     label:'🎯 Context'},
+  {id:'explanation', label:'📝 Explanation'},
+  {id:'recommendations',label:'💡 Recommendations'},
+  {id:'execution',   label:'⚙️ Execution'},
+];
+
+function renderTabBar(){
+  document.getElementById('tabs-bar').innerHTML=TAB_DEFS.map(t=>
+    `<button class="tab-btn ${S.activeTab===t.id?'active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      S.activeTab=btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      document.getElementById(`tab-${S.activeTab}`).classList.add('active');
+    });
+  });
+  TAB_DEFS.forEach(t=>{
+    const el=document.getElementById(`tab-${t.id}`);
+    el.classList.remove('active');
+  });
+  document.getElementById(`tab-${S.activeTab}`).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// UI — RENDER FULL PIPELINE RESULTS
+// ═══════════════════════════════════════════════════════════════════════
+function renderPipelineResults(){
+  const pipe=S.pipeline[S.selectedIdx];
+  if(!pipe) return;
+  const {anomaly,attribution:attr,verdict,explanation,recommendations}=pipe;
+  const recentDays=+document.getElementById('sl-recent').value;
+
+  document.getElementById('detail-panel').style.display='block';
+  renderTabBar();
+
+  // ── Tab: Trends ──────────────────────────────────────────────────────
+  document.getElementById('tab-trends').innerHTML=`
+    <div class="section-sub">Segment: ${anomaly.segment}</div>
+    ${['roas','spend','cvr','cpm'].map(m=>`<div class="panel"><div id="chart-trend-${m}"></div></div>`).join('')}`;
+  setTimeout(()=>{
+    ['roas','spend','cvr','cpm'].forEach(m=>chartTrend(`chart-trend-${m}`,S.rawData,anomaly,m,recentDays));
+  },50);
+
+  // ── Tab: Attribution ─────────────────────────────────────────────────
+  const maxAbs=Math.max(...attr.drivers.map(d=>Math.abs(d.contributionAbs)),Math.abs(attr.residual),1e-9);
+  document.getElementById('tab-attribution').innerHTML=`
+    <div class="metrics-row">
+      <div class="metric-card"><div class="label">Total ROAS Δ</div><div class="value ${attr.totalChange>=0?'pos':'neg'}">${attr.totalChange>=0?'+':''}${attr.totalChange.toFixed(5)}</div></div>
+      <div class="metric-card"><div class="label">Baseline ROAS</div><div class="value neu">${attr.baselineValue.toFixed(4)}</div></div>
+      <div class="metric-card"><div class="label">Recent ROAS</div><div class="value ${attr.recentValue>=attr.baselineValue?'pos':'neg'}">${attr.recentValue.toFixed(4)}</div></div>
+    </div>
+    <div class="panel"><div id="chart-waterfall"></div></div>
+    <div class="panel">
+      <div class="panel-title"><div class="panel-dot"></div>Driver Breakdown</div>
+      <table class="attr-table"><thead><tr><th>Driver</th><th>Hist</th><th>Recent</th><th>Δ%</th><th>ROAS Contribution</th><th>Share</th></tr></thead>
+      <tbody>
+      ${attr.drivers.map(d=>{
+        const w=Math.abs(d.contributionAbs)/maxAbs*100;
+        return `<tr>
+          <td><strong>${d.driver}</strong></td>
+          <td>${d.historicalValue.toFixed(5)}</td><td>${d.recentValue.toFixed(5)}</td>
+          <td class="${d.deltaPct>=0?'up':'down'}">${d.deltaPct>=0?'+':''}${d.deltaPct.toFixed(1)}%</td>
+          <td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill ${d.contributionAbs>=0?'bar-pos':'bar-neg'}" style="width:${w}%"></div></div><span class="${d.contributionAbs>=0?'down':'up'}">${d.contributionAbs>=0?'+':''}${d.contributionAbs.toFixed(5)}</span></div></td>
+          <td>${d.contributionPct.toFixed(1)}%</td></tr>`;
+      }).join('')}
+      <tr><td><em>Residual</em></td><td>—</td><td>—</td><td>—</td>
+        <td class="${attr.residual>=0?'down':'up'}">${attr.residual>=0?'+':''}${attr.residual.toFixed(5)}</td><td>—</td></tr>
+      </tbody></table>
+    </div>`;
+  setTimeout(()=>chartWaterfall('chart-waterfall',attr),50);
+
+  // ── Tab: Context ──────────────────────────────────────────────────────
+  const vCls={within_expected:'within_expected',watch:'watch',issue:'issue',opportunity:'opportunity'}[verdict.label];
+  const vIcon={within_expected:'✅',watch:'👀',issue:'🚨',opportunity:'🚀'}[verdict.label];
+  document.getElementById('tab-context').innerHTML=`
+    <div class="verdict-box verdict-${vCls}">
+      <div class="verdict-label">${vIcon} ${verdict.label.replace(/_/g,' ').toUpperCase()}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">Confidence: ${(verdict.confidence*100).toFixed(0)}%</div>
+    </div>
+    <div class="metrics-row">
+      <div class="metric-card"><div class="label">Actual</div><div class="value neu">${verdict.actualValue.toFixed(4)}</div></div>
+      <div class="metric-card"><div class="label">Expected Lower</div><div class="value">${verdict.expectedLower.toFixed(4)}</div></div>
+      <div class="metric-card"><div class="label">Expected Upper</div><div class="value">${verdict.expectedUpper.toFixed(4)}</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="panel"><div id="chart-gauge"></div></div>
+      <div class="panel"><div id="chart-peer"></div></div>
+    </div>
+    <div class="panel"><div class="panel-title"><div class="panel-dot"></div>Reasoning</div><div class="text-muted" style="font-size:13px;line-height:1.7">${verdict.reasoning}</div></div>`;
+  setTimeout(()=>{chartGauge('chart-gauge',verdict,anomaly.metric);chartPeer('chart-peer',verdict,anomaly.metric);},50);
+
+  // ── Tab: Explanation ──────────────────────────────────────────────────
+  const narHtml=explanation.narrative.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  document.getElementById('tab-explanation').innerHTML=`
+    <div class="panel">
+      <div class="panel-title"><div class="panel-dot"></div>Headline</div>
+      <div style="font-size:15px;font-weight:700;line-height:1.4;margin-bottom:12px">${explanation.headline}</div>
+      <div class="metrics-row">
+        <div class="metric-card"><div class="label">Confidence</div><div class="value neu">${(explanation.confidence*100).toFixed(0)}%</div></div>
+        <div class="metric-card"><div class="label">Z-Score</div><div class="value ${anomaly.zScore>=0?'neg':'pos'}">${anomaly.zScore>=0?'+':''}${anomaly.zScore.toFixed(2)}σ</div></div>
+        <div class="metric-card"><div class="label">Severity</div><div class="value ${anomaly.severity==='high'?'neg':anomaly.severity==='low'?'pos':'warn'}">${anomaly.severity.toUpperCase()}</div></div>
+      </div>
+      <hr class="divider">
+      <div class="narrative">${narHtml}</div>
+    </div>
+    ${explanation.caveats.map(c=>`<div class="caveat">⚠️ <span>${c}</span></div>`).join('')}`;
+
+  // ── Tab: Recommendations ──────────────────────────────────────────────
+  document.getElementById('tab-recommendations').innerHTML=recommendations.map(rec=>{
+    const riskColor={low:'var(--accent2)',medium:'var(--warn)',high:'var(--accent3)'}[rec.riskLevel];
+    const viols=rec.guardrailViolations.map(v=>`<div class="violation">🚫 ${v}</div>`).join('');
+    return `<div class="rec-card ${rec.riskLevel}">
+      <div class="rec-header">
+        <div class="rec-title">${rec.description}</div>
+        <div class="rec-type">${rec.actionType.toUpperCase()}</div>
+      </div>
+      <div class="rec-meta">
+        <div class="rec-kv">ROAS Δ: <span style="color:${rec.expectedRoasDelta>=0?'var(--accent2)':'var(--accent3)'}">${rec.expectedRoasDelta>=0?'+':''}${rec.expectedRoasDelta.toFixed(4)}</span></div>
+        <div class="rec-kv">Spend Δ: <span>${rec.expectedSpendDelta>=0?'+':''}${(rec.expectedSpendDelta*100).toFixed(1)}%</span></div>
+        <div class="rec-kv">Risk: <span style="color:${riskColor}">${rec.riskLevel.toUpperCase()}</span></div>
+      </div>
+      <div class="rec-rationale">${rec.rationale}</div>
+      ${viols}
+      <details style="margin-top:8px"><summary style="font-size:11px;color:var(--muted);cursor:pointer">Action payload</summary>
+        <pre style="font-size:10px;color:var(--muted);margin-top:6px;white-space:pre-wrap">${JSON.stringify(rec.payload,null,2)}</pre></details>
+    </div>`;
+  }).join('');
+
+  // ── Tab: Execution ────────────────────────────────────────────────────
+  renderExecTab(recommendations);
+}
+
+function renderExecTab(recommendations){
+  const mode=getRadio('radio-exec');
+  const modeLabel={recommend_only:'👁 Recommend Only',human_in_loop:'🙋 Human-in-the-Loop',auto_low_risk:'⚡ Auto (Low Risk)'}[mode];
+  let html=`<div class="panel"><div class="panel-title"><div class="panel-dot"></div>Mode: ${modeLabel}</div>`;
+
+  for(const rec of recommendations){
+    const existing=S.execResults[rec.actionId];
+    const rbKey=`ROLLBACK_${rec.actionId}`;
+    html+=`<div class="exec-action"><div class="exec-title">${rec.description}</div>`;
+
+    if(existing){
+      const icon={approved:'✅',denied:'❌',auto_executed:'⚡',pending:'⏳',rolled_back:'↩️'}[existing.status]||'❓';
+      html+=`<div class="status-tag status-${existing.status}">${icon} ${existing.status} @ ${existing.executedAt}</div>`;
+      if(existing.simulatedOutcome) html+=`<div class="outcome-box">${JSON.stringify(existing.simulatedOutcome,null,2)}</div>`;
+      if((existing.status==='approved'||existing.status==='auto_executed')&&!S.execResults[rbKey])
+        html+=`<div class="exec-btns" style="margin-top:10px"><button class="exec-btn rollback" data-aid="${rec.actionId}">↩️ Rollback</button></div>`;
+    } else if(mode==='recommend_only'){
+      html+=`<div style="font-size:12px;color:var(--muted);margin-top:6px">👁 Recommend-only — no action executed.</div>`;
+    } else if(mode==='human_in_loop'){
+      const dis=rec.guardrailViolations.length?' disabled':'';
+      html+=`<div class="exec-btns"><button class="exec-btn approve" data-aid="${rec.actionId}" data-mode="human_in_loop" data-approved="1"${dis}>✅ Approve</button>
+        <button class="exec-btn deny" data-aid="${rec.actionId}" data-mode="human_in_loop" data-approved="0">❌ Deny</button></div>`;
+    } else if(mode==='auto_low_risk'){
+      if(rec.riskLevel==='low'&&!rec.guardrailViolations.length)
+        html+=`<div class="exec-btns"><button class="exec-btn auto-exec" data-aid="${rec.actionId}" data-mode="auto_low_risk" data-approved="1">⚡ Auto-Execute (low risk)</button></div>`;
+      else{
+        const dis=rec.guardrailViolations.length?' disabled':'';
+        html+=`<div class="exec-btns"><button class="exec-btn approve" data-aid="${rec.actionId}" data-mode="auto_low_risk" data-approved="1"${dis}>✅ Approve</button>
+          <button class="exec-btn deny" data-aid="${rec.actionId}" data-mode="auto_low_risk" data-approved="0">❌ Deny</button></div>`;
+      }
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+
+  // Audit log
+  html+=`<div class="panel"><div class="panel-title"><div class="panel-dot warn"></div>Audit Log (${S.auditLog.length} entries)</div>`;
+  if(S.auditLog.length){
+    html+=`<div style="overflow-x:auto"><table class="audit-table"><thead><tr>
+      <th>Timestamp</th><th>Action ID</th><th>Type</th><th>Segment</th><th>Status</th><th>Mode</th><th>Actor</th><th>Risk</th>
+    </tr></thead><tbody>
+    ${S.auditLog.slice().reverse().map(e=>`<tr>
+      <td>${e.timestamp}</td><td class="mono">${e.actionId.slice(0,12)}</td><td>${e.actionType}</td>
+      <td style="font-size:10px">${e.segment}</td><td><span class="status-tag status-${e.status}" style="font-size:10px">${e.status}</span></td>
+      <td>${e.mode}</td><td>${e.actor}</td><td>${e.riskLevel}</td>
+    </tr>`).join('')}
+    </tbody></table></div>
+    <button style="margin-top:10px;font-size:11px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer" id="btn-clear-audit">🗑 Clear log</button>`;
+  } else html+=`<div class="text-muted">No actions executed yet.</div>`;
+  html+='</div>';
+
+  document.getElementById('tab-execution').innerHTML=html;
+
+  // Wire buttons
+  document.querySelectorAll('.exec-btn[data-aid][data-mode]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const aid=btn.dataset.aid;
+      const m=btn.dataset.mode;
+      const approved=btn.dataset.approved==='1';
+      const pipe=S.pipeline[S.selectedIdx];
+      if(!pipe) return;
+      const action=pipe.recommendations.find(r=>r.actionId===aid);
+      if(!action) return;
+      S.execResults[aid]=executionRun(action,m,approved);
+      renderExecTab(pipe.recommendations);
+    });
+  });
+  document.querySelectorAll('.exec-btn.rollback[data-aid]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const aid=btn.dataset.aid;
+      const rb=executionRollback(aid);
+      if(rb) S.execResults[`ROLLBACK_${aid}`]=rb;
+      const pipe=S.pipeline[S.selectedIdx];
+      if(pipe) renderExecTab(pipe.recommendations);
+    });
+  });
+  document.getElementById('btn-clear-audit')?.addEventListener('click',()=>{S.auditLog=[];const pipe=S.pipeline[S.selectedIdx];if(pipe)renderExecTab(pipe.recommendations);});
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// MAIN CONTROLLER
+// ═══════════════════════════════════════════════════════════════════════
+function getSettings(){
+  return{
+    scenario:document.getElementById('sel-scenario').value,
+    days:+document.getElementById('sl-days').value,
+    recentDays:+document.getElementById('sl-recent').value,
+    zThr:+document.getElementById('sl-z').value,
+    channels:[...S.filters.channels],geos:[...S.filters.geos],audiences:[...S.filters.audiences],
+    goal:getRadio('radio-goal')||'roas',
+    riskTolerance:getRadio('radio-risk')||'medium',
+    execMode:getRadio('radio-exec')||'human_in_loop',
+    guardrails:{maxBid:+document.getElementById('sl-bid').value,
+      minRoas:+document.getElementById('sl-roas').value,
+      maxSpend:+document.getElementById('sl-spend').value,
+      blockedChannels:[...S.filters.blockedChannels]},
+  };
+}
+
+function loadData(){
+  const cfg=getSettings();
+  setBadge('Loading…','');
+  renderPipelineSteps('observer',[]);
+  const all=generateData(cfg.scenario,cfg.days,42);
+  S.rawData=all.filter(r=>cfg.channels.includes(r.channel)&&cfg.geos.includes(r.geo)&&cfg.audiences.includes(r.audience));
+  const lookbackDays=Math.max(1,cfg.days-cfg.recentDays);
+  S.anomalies=observerDetect(S.rawData,lookbackDays,cfg.recentDays,cfg.zThr);
+  S.selectedIdx=null; S.pipeline={}; S.execResults=[];
+  document.getElementById('detail-panel').style.display='none';
+  document.getElementById('btn-pipeline').disabled=true;
+  document.getElementById('selected-label').textContent='No anomaly selected';
+  renderInbox();
+  renderPipelineSteps('',['observer']);
+  setBadge(`${S.anomalies.length} anomalies`,'green');
+}
+
+function runPipeline(){
+  if(S.selectedIdx===null) return;
+  const cfg=getSettings();
+  const anomaly=S.anomalies[S.selectedIdx];
+  const lookback=Math.max(1,cfg.days-cfg.recentDays);
+
+  const doneKeys=['observer'];
+  const activate=key=>{renderPipelineSteps(key,doneKeys);};
+
+  activate('reasoning');
+  const attr=reasoningAttribute(S.rawData,anomaly,lookback,cfg.recentDays);
+  doneKeys.push('reasoning');
+
+  activate('context');
+  const verdict=contextEvaluate(S.rawData,anomaly,lookback,cfg.recentDays);
+  doneKeys.push('context');
+
+  activate('explanation');
+  const explanation=explanationGenerate(anomaly,attr,verdict);
+  doneKeys.push('explanation');
+
+  activate('recommend');
+  const recommendations=recommendGenerate(anomaly,attr,verdict,{goal:cfg.goal,riskTolerance:cfg.riskTolerance},cfg.guardrails);
+  doneKeys.push('recommend');
+
+  doneKeys.push('execution');
+  renderPipelineSteps('',doneKeys);
+
+  S.pipeline[S.selectedIdx]={anomaly,attribution:attr,verdict,explanation,recommendations};
+  S.activeTab='trends';
+  setBadge('Pipeline complete','green');
+  renderPipelineResults();
+}
+
+function setBadge(text,cls){
+  const b=document.getElementById('status-badge');
+  b.textContent=text; b.className='badge'+(cls?` ${cls}`:'');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════
+(function init(){
+  // Pipeline steps
+  renderPipelineSteps('',['']);
+
+  // Scenario description
+  const scDesc=document.getElementById('scenario-desc');
+  const scSel=document.getElementById('sel-scenario');
+  const updDesc=()=>{scDesc.textContent=SCENARIO_DESC[scSel.value]||'';};
+  scSel.addEventListener('change',updDesc); updDesc();
+
+  // Sliders
+  [['sl-days','val-days',v=>v],['sl-recent','val-recent',v=>v],['sl-z','val-z',v=>v]].forEach(([id,vid,fn])=>{
+    const sl=document.getElementById(id); const lbl=document.getElementById(vid);
+    lbl.textContent=fn(sl.value); sl.addEventListener('input',()=>lbl.textContent=fn(sl.value));
+  });
+  const bid=document.getElementById('sl-bid'); bid.addEventListener('input',()=>document.getElementById('val-bid').value=bid.value+'%');
+  document.getElementById('val-bid').value=bid.value+'%';
+  const rs=document.getElementById('sl-roas'); rs.addEventListener('input',()=>document.getElementById('val-roas').value=rs.value);
+  document.getElementById('val-roas').value=rs.value;
+  const sp=document.getElementById('sl-spend'); sp.addEventListener('input',()=>document.getElementById('val-spend').value=sp.value+'%');
+  document.getElementById('val-spend').value=sp.value+'%';
+
+  // Chips
+  S.filters.channels=new Set(CHANNELS);
+  S.filters.geos=new Set(GEOS);
+  S.filters.audiences=new Set(AUDIENCES);
+  S.filters.blockedChannels=new Set();
+  makeChips('chips-channels',CHANNELS,S.filters.channels,()=>{});
+  makeChips('chips-geos',GEOS,S.filters.geos,()=>{});
+  makeChips('chips-audiences',AUDIENCES,S.filters.audiences,()=>{});
+  makeChips('chips-blocked',CHANNELS,S.filters.blockedChannels,()=>{});
+
+  // Radios
+  makeRadio('radio-goal',()=>{});
+  makeRadio('radio-risk',()=>{});
+  makeRadio('radio-exec',()=>{});
+
+  // Buttons
+  document.getElementById('btn-load').addEventListener('click',loadData);
+  document.getElementById('btn-pipeline').addEventListener('click',runPipeline);
+
+  // Auto-load
+  loadData();
+})();
 </script>
 </body>
 </html>
