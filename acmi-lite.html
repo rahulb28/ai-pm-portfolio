@@ -9,20 +9,20 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;
-  --border:rgba(120,100,255,0.15);--accent:#7c6eff;--accent2:#00e5a0;
-  --accent3:#ff6b6b;--text:#e8e6ff;--muted:#7a78a0;--warn:#ffb347;
+  --bg:#f5f5f7;--surface:#ffffff;--surface2:#f0f0f5;
+  --border:rgba(100,80,220,0.15);--accent:#5b4de8;--accent2:#00a87a;
+  --accent3:#d94040;--text:#1a1a2e;--muted:#6b6880;--warn:#c97a00;
 }
 body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 .grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(124,110,255,0.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(124,110,255,0.04) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(91,77,232,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,77,232,0.04) 1px,transparent 1px);
   background-size:40px 40px}
 header{border-bottom:1px solid var(--border);position:relative;z-index:1}
 .header-inner{max-width:1400px;margin:0 auto;padding:20px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
 .logo{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));
-  display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:#0a0a0f}
+  display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:#fff}
 .logo-text{font-size:18px;font-weight:800;letter-spacing:-0.5px}
 .logo-sub{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:2px}
 .pipeline{display:flex;align-items:center;gap:0;flex:1;min-width:0;overflow-x:auto}
@@ -773,9 +773,9 @@ function simOutcome(action){
 // ═══════════════════════════════════════════════════════════════════════
 // CHART HELPERS (Plotly)
 // ═══════════════════════════════════════════════════════════════════════
-const DK={paper_bgcolor:'#0a0a0f',plot_bgcolor:'#12121a',font:{color:'#e8e6ff',family:'IBM Plex Mono,monospace',size:11},
-  xaxis:{gridcolor:'#1a1a26',linecolor:'#1a1a26',zeroline:false},
-  yaxis:{gridcolor:'#1a1a26',linecolor:'#1a1a26',zeroline:false},
+const DK={paper_bgcolor:'#ffffff',plot_bgcolor:'#f5f5f7',font:{color:'#1a1a2e',family:'IBM Plex Mono,monospace',size:11},
+  xaxis:{gridcolor:'#e8e8f0',linecolor:'#e8e8f0',zeroline:false},
+  yaxis:{gridcolor:'#e8e8f0',linecolor:'#e8e8f0',zeroline:false},
   margin:{l:55,r:20,t:36,b:40},legend:{orientation:'h',y:1.12,font:{size:10}}};
 
 function chartTrend(divId, data, anomaly, metric, recentDays){
@@ -817,7 +817,7 @@ function chartGauge(divId, verdict, metric){
     gauge:{axis:{range:[Math.min(lo*0.8,val*0.85),Math.max(hi*1.2,val*1.15)],tickformat:'.3f'},
       bar:{color:col},steps:[{range:[lo,hi],color:'rgba(0,229,160,0.1)'}]},
     title:{text:`${metric.toUpperCase()}: ${verdict.label.replace(/_/g,' ')}`,font:{size:12,color:'#e8e6ff'}}}],
-    {paper_bgcolor:'#12121a',font:{color:'#e8e6ff',family:'IBM Plex Mono'},height:240,margin:{l:20,r:20,t:50,b:10}},{responsive:true});
+    {paper_bgcolor:'#ffffff',font:{color:'#1a1a2e',family:'IBM Plex Mono'},height:240,margin:{l:20,r:20,t:50,b:10}},{responsive:true});
 }
 
 function chartPeer(divId, verdict, metric){
