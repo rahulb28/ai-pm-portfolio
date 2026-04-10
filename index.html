@@ -66,6 +66,49 @@ h1 span { color: var(--accent); }
 .about-body { font-size: 14px; color: var(--muted); line-height: 1.8; }
 .about-body strong { color: var(--text); }
 
+/* ── Resume Section ── */
+.resume { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+.resume-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.resume-top-left {}
+.resume-section-label { font-family: 'Syne', sans-serif; font-size: 13px; letter-spacing: 0.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+.resume-headline { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.resume-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.dl-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: white; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 8px; text-decoration: none; transition: opacity .2s; white-space: nowrap; margin-top: 4px; }
+.dl-btn:hover { opacity: 0.85; }
+
+.rcard { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px 32px; margin-bottom: 16px; }
+.rcard-title { font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 1px; color: var(--accent); text-transform: uppercase; margin-bottom: 16px; font-weight: 600; }
+.rsummary { font-size: 14px; color: var(--muted); line-height: 1.8; }
+.rsummary strong { color: var(--text); }
+
+/* Timeline */
+.rtimeline { display: flex; flex-direction: column; gap: 28px; }
+.rjob { position: relative; padding-left: 20px; border-left: 2px solid var(--border); }
+.rjob::before { content: ''; position: absolute; left: -5px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.rjob-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 2px; }
+.rjob-company { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+.rjob-dates { font-size: 11px; font-family: monospace; color: var(--muted); white-space: nowrap; padding-top: 2px; }
+.rjob-role { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 10px; }
+.rjob-bullets { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.rjob-bullets li { font-size: 13px; color: var(--muted); line-height: 1.65; padding-left: 14px; position: relative; }
+.rjob-bullets li::before { content: '·'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+.rjob-bullets li strong { color: var(--text); }
+
+/* Metric chips */
+.rmetrics { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.rchip { font-size: 10px; padding: 3px 9px; border-radius: 100px; background: rgba(124,110,255,0.12); border: 1px solid rgba(124,110,255,0.25); color: var(--accent); font-weight: 600; font-family: monospace; }
+
+/* Education grid */
+.redu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.redu-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+.redu-degree { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.redu-school { font-size: 12px; color: var(--muted); }
+.redu-year { font-size: 11px; color: var(--accent); font-family: monospace; margin-top: 6px; }
+
+/* Skills row */
+.rskills { display: flex; flex-wrap: wrap; gap: 8px; }
+.rskill { font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted); }
+
 footer { text-align: center; padding: 32px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); margin-top: 8px; }
 </style>
 </head>
@@ -79,6 +122,7 @@ footer { text-align: center; padding: 32px; font-size: 12px; color: var(--muted)
   </p>
   <div class="hero-links">
     <a href="https://linkedin.com/in/rahulbhole" class="hero-link secondary" target="_blank">LinkedIn ↗</a>
+    <a href="#resume" class="hero-link secondary">Resume ↓</a>
     <a href="mailto:bholerahul10@gmail.com" class="hero-link primary">Get in Touch</a>
   </div>
 </div>
@@ -169,6 +213,163 @@ footer { text-align: center; padding: 32px; font-size: 12px; color: var(--muted)
       The PRD Generator uses the <strong>Claude API</strong> to generate structured PRDs from product ideas — demonstrating how AI tools can accelerate PM workflows. The Bid Health Monitor mirrors the platform health metrics framework I established for a $1B annual ad spend operation.
     </div>
   </div>
+</div>
+
+<div class="resume" id="resume">
+
+  <div class="resume-top">
+    <div class="resume-top-left">
+      <div class="resume-section-label">Resume</div>
+      <div class="resume-headline">Rahul Bhole</div>
+      <div class="resume-sub">Bothell, WA &nbsp;·&nbsp; bholerahul10@gmail.com &nbsp;·&nbsp; (415) 713-7903</div>
+    </div>
+    <a href="Rahul_Bhole_Resume4.pdf" class="dl-btn" download>&#8595; Download PDF</a>
+  </div>
+
+  <!-- Summary -->
+  <div class="rcard">
+    <div class="rcard-title">Summary</div>
+    <div class="rsummary">
+      Product manager with expertise in bridging <strong>business, technology, analytics, and machine learning</strong> to drive impactful solutions. Experienced in optimizing ML-driven ad strategies, enhancing platform development, and leveraging data for strategic decision-making. Skilled in improving marketing bidding platforms, aligning stakeholders, and integrating technology with business needs to maximize efficiency.
+    </div>
+  </div>
+
+  <!-- Experience -->
+  <div class="rcard">
+    <div class="rcard-title">Professional Experience</div>
+    <div class="rtimeline">
+
+      <div class="rjob">
+        <div class="rjob-header">
+          <div class="rjob-company">Expedia Group &mdash; Seattle, WA</div>
+          <div class="rjob-dates">Apr 2022 &ndash; Present</div>
+        </div>
+        <div class="rjob-role">Sr. Product Manager, Marketing Bidding Platform &amp; ML Optimization</div>
+        <ul class="rjob-bullets">
+          <li>Owned end-to-end bidding strategy and optimization of <strong>~$1B in annual performance ad spend</strong> across Google, Trivago, Tripadvisor &amp; Kayak</li>
+          <li>Led cross-functional launch of <strong>TikTokGo integration</strong> — delivered MVP with 150+ transactions and $50K+ GBV at 50% rollout</li>
+          <li>Partnered with ML Science to implement controllers on <strong>bid-to-value prediction models</strong> (CVR &times; GP &times; units), translating ROAS constraints into real-time bidding decisions</li>
+          <li>Enabled rapid experimentation via a <strong>self-service no-code A/B testing platform</strong>, reducing bid strategy iteration time by 17% and saving ~40 person-weeks annually</li>
+          <li>Established platform health metrics (model refresh SLAs, bid submission success rates, auction coverage), improving system reliability and decision confidence</li>
+          <li>Led launch of a <strong>bidding platform UI</strong>, partnering with engineering and ops to deliver MVP within 2 months</li>
+          <li>Defined the North Star vision for the marketing bidding platform in collaboration with MLS, MLE, Ops and business stakeholders</li>
+        </ul>
+        <div class="rmetrics">
+          <span class="rchip">$1B ad spend</span>
+          <span class="rchip">−17% iteration time</span>
+          <span class="rchip">~40 person-wks saved/yr</span>
+          <span class="rchip">TikTokGo MVP</span>
+        </div>
+      </div>
+
+      <div class="rjob">
+        <div class="rjob-header">
+          <div class="rjob-company">Expedia Group</div>
+          <div class="rjob-dates">Apr 2020 &ndash; Mar 2022</div>
+        </div>
+        <div class="rjob-role">Product Manager III, Machine Learning</div>
+        <ul class="rjob-bullets">
+          <li>Led end-to-end development of new ML algorithms and model enhancements, balancing cost, timelines, and business impact</li>
+          <li>Defined and executed the data science product roadmap optimizing marketing channel ad traffic</li>
+          <li>Led integration of <strong>legacy bidding platforms across 3 brands</strong> during complex organizational restructuring</li>
+          <li>Streamlined algorithm development processes, increasing efficiency and scalability</li>
+        </ul>
+      </div>
+
+      <div class="rjob">
+        <div class="rjob-header">
+          <div class="rjob-company">Expedia Group</div>
+          <div class="rjob-dates">Jun 2017 &ndash; Mar 2020</div>
+        </div>
+        <div class="rjob-role">Sr. Marketing Analytics Manager</div>
+        <ul class="rjob-bullets">
+          <li>Led and optimized metasearch campaigns with Kayak and Tripadvisor, improving traffic productivity and ROAS</li>
+          <li>Built CPC prediction models for hotel ad auctions: <strong>+15% transactions, +20% gross profit</strong></li>
+          <li>Designed and executed A/B tests for algorithm enhancements: <strong>+17% transactions, +19% GP</strong></li>
+          <li>Developed dashboards and alerting framework for KPI monitoring and root cause analysis</li>
+        </ul>
+        <div class="rmetrics">
+          <span class="rchip">+15% transactions</span>
+          <span class="rchip">+20% GP</span>
+          <span class="rchip">+17% txn via A/B</span>
+        </div>
+      </div>
+
+      <div class="rjob">
+        <div class="rjob-header">
+          <div class="rjob-company">Raymond Ltd &mdash; Mumbai, India</div>
+          <div class="rjob-dates">Apr 2011 &ndash; Mar 2016</div>
+        </div>
+        <div class="rjob-role">Regional Sales Manager / Marketing Analyst / Category Analyst</div>
+        <ul class="rjob-bullets">
+          <li>Developed product, pricing, and promotional strategies using consumption-based insights, driving <strong>$102M in revenue</strong></li>
+        </ul>
+      </div>
+
+      <div class="rjob">
+        <div class="rjob-header">
+          <div class="rjob-company">Tata Consultancy Services &mdash; Mumbai, India</div>
+          <div class="rjob-dates">Aug 2007 &ndash; Jul 2009</div>
+        </div>
+        <div class="rjob-role">Assistant System Engineer</div>
+        <ul class="rjob-bullets">
+          <li>Developed software features to resolve business-critical issues using C++ for a telecom client</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AI Certification -->
+  <div class="rcard">
+    <div class="rcard-title">AI Certification &amp; Projects</div>
+    <ul class="rjob-bullets" style="padding-left:0">
+      <li><strong>AI Product Management Certification (2025)</strong> — Large Language Models, prompt design, model adaptation, evaluation frameworks, and responsible AI (Product Faculty)</li>
+      <li>Built <strong>5 interactive AI/ML prototypes</strong>: ACMI Lite (multi-agent campaign intelligence), Auction Simulator, A/B Test Analyzer, AI PRD Generator, and Bid Health Monitor — spanning bid optimization, experimentation, and real-time platform monitoring</li>
+    </ul>
+  </div>
+
+  <!-- Education -->
+  <div class="rcard">
+    <div class="rcard-title">Education</div>
+    <div class="redu-grid">
+      <div class="redu-item">
+        <div class="redu-degree">M.S. Business Analytics (GPA 4.0)</div>
+        <div class="redu-school">W. P. Carey School of Business, Arizona State University</div>
+        <div class="redu-year">May 2017 &mdash; Tempe, AZ</div>
+      </div>
+      <div class="redu-item">
+        <div class="redu-degree">MBA — Marketing</div>
+        <div class="redu-school">Jamnalal Bajaj Institute of Management Studies</div>
+        <div class="redu-year">May 2011 &mdash; Mumbai, India</div>
+      </div>
+      <div class="redu-item">
+        <div class="redu-degree">B.E. Computer Engineering</div>
+        <div class="redu-school">Veermata Jijabai Technological Institute</div>
+        <div class="redu-year">May 2007 &mdash; Mumbai, India</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Skills -->
+  <div class="rcard">
+    <div class="rcard-title">Skills &amp; Domains</div>
+    <div class="rskills">
+      <span class="rskill">ML Bidding Platforms</span>
+      <span class="rskill">ROAS Optimization</span>
+      <span class="rskill">Auction Mechanics</span>
+      <span class="rskill">A/B Experimentation</span>
+      <span class="rskill">Data Science Roadmaps</span>
+      <span class="rskill">LLMs &amp; Prompt Design</span>
+      <span class="rskill">Multi-agent AI Systems</span>
+      <span class="rskill">Stakeholder Alignment</span>
+      <span class="rskill">PRD &amp; Requirements</span>
+      <span class="rskill">Platform Health Metrics</span>
+      <span class="rskill">SQL / Analytics</span>
+      <span class="rskill">Cross-functional Leadership</span>
+    </div>
+  </div>
+
 </div>
 
 <footer>
