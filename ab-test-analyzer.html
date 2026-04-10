@@ -422,12 +422,14 @@ function analyze() {
   document.getElementById('ro-rec').textContent = recText;
 
   document.getElementById('results').classList.remove('hidden');
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (document._userClicked) document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(e) {
     showError('Something went wrong: ' + e.message + '. Check that all fields have valid numbers.');
   }
 }
-document.getElementById('analyze-btn').addEventListener('click', analyze);
+document.getElementById('analyze-btn').addEventListener('click', () => { document._userClicked = true; analyze(); });
+// Auto-run on page load so results are visible immediately
+analyze();
 </script>
 </body>
 </html>
