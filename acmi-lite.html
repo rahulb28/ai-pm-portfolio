@@ -82,7 +82,8 @@ input[type=range]{padding:4px 0;accent-color:var(--accent);background:transparen
 .inbox-table td{padding:10px 12px;border-bottom:1px solid rgba(120,100,255,0.07);vertical-align:middle}
 .inbox-table tr.anomaly-row{cursor:pointer;transition:background .15s}
 .inbox-table tr.anomaly-row:hover{background:rgba(124,110,255,0.05)}
-.inbox-table tr.anomaly-row.selected{background:rgba(124,110,255,0.1);border-left:3px solid var(--accent)}
+.inbox-table tr.anomaly-row.selected{background:rgba(124,110,255,0.13);border-left:4px solid var(--accent);font-weight:600}
+.inbox-table tr.anomaly-row.selected td:first-child::before{content:'▶ ';font-size:9px;color:var(--accent)}
 .sev-pill{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;border-radius:100px;font-weight:500}
 .sev-high{background:rgba(255,107,107,0.15);color:var(--accent3);border:1px solid rgba(255,107,107,0.3)}
 .sev-medium{background:rgba(255,179,71,0.15);color:var(--warn);border:1px solid rgba(255,179,71,0.3)}
@@ -332,7 +333,7 @@ input[type=range]{padding:4px 0;accent-color:var(--accent);background:transparen
 
     <div class="inbox-actions" id="inbox-actions" style="display:none">
       <button class="action-btn primary" id="btn-pipeline" disabled>🔍 Run Full Pipeline</button>
-      <span class="text-muted text-mono" id="selected-label">No anomaly selected</span>
+      <span class="text-muted text-mono" id="selected-label" style="font-size:12px">← Click a row to select</span>
     </div>
 
     <hr class="divider">
@@ -892,6 +893,9 @@ function renderInbox(){
   const sevCls={high:'sev-high',medium:'sev-medium',low:'sev-low'};
 
   container.innerHTML=`
+  <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'IBM Plex Mono',monospace">
+    Click any row to select it, then hit <strong style="color:var(--accent)">Run Full Pipeline</strong> ↓
+  </div>
   <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
   <table class="inbox-table"><thead><tr>
     ${[['Sev','severity'],['Segment','segment'],['Metric','metric'],['Dir','direction'],['Z-Score','zScore'],['Δ%','pctChange'],['Hist Mean','historicalMean'],['Recent Mean','recentMean']]
@@ -1183,8 +1187,16 @@ function loadData(){
   S.selectedIdx=null; S.pipeline={}; S.execResults=[];
   document.getElementById('detail-panel').style.display='none';
   document.getElementById('btn-pipeline').disabled=true;
-  document.getElementById('selected-label').textContent='No anomaly selected';
+  document.getElementById('selected-label').textContent='← Click a row to select';
   renderInbox();
+  // Auto-select first anomaly for demo — user can just click Run Pipeline
+  if(S.anomalies.length>0){
+    S.selectedIdx=0;
+    renderInbox();
+    document.getElementById('btn-pipeline').disabled=false;
+    const a=S.anomalies[0];
+    document.getElementById('selected-label').textContent=`Selected: ${a.segment} — ${a.metric.toUpperCase()}`;
+  }
   renderPipelineSteps('',['observer']);
   setBadge(`${S.anomalies.length} anomalies`,'green');
 }
