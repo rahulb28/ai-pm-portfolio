@@ -174,17 +174,8 @@ footer { text-align: center; padding: 32px; font-size: 12px; color: var(--muted)
 <footer>
   Rahul Bhole · bholerahul10@gmail.com · (415) 713-7903 · Bothell, WA
   <div style="margin-top:10px">
-    <span id="visit-badge" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:#9ca3af;font-family:monospace;opacity:0.8"></span>
+    <img src="https://visitor-badge.laobi.icu/badge?page_id=rahulb28.ai-pm-portfolio&left_color=555555&right_color=7c6eff&left_text=visitors" alt="visitor count" style="height:18px;vertical-align:middle;opacity:0.85">
   </div>
-  <script>
-    fetch('https://api.countapi.xyz/hit/rahulb28-ai-pm-portfolio/visits')
-      .then(function(r){return r.json();})
-      .then(function(d){
-        var el=document.getElementById('visit-badge');
-        if(el&&d&&d.value){el.innerHTML='&#128065; '+d.value.toLocaleString()+' visits';}
-      })
-      .catch(function(){});
-  </script>
 </footer>
 
 </body>
