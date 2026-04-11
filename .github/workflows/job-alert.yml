@@ -154,6 +154,7 @@ jobs:
               "service_id":  "service_zvlvojn",
               "template_id": "template_94956u9",
               "user_id":     "U14aXalSqzq7F0qpc",
+              "accessToken": "ipcbTPz7PYwWZ3ESWa90w",
               "template_params": {
                   "page":    f"Daily PM Job Alert — {date_str}",
                   "message": message
