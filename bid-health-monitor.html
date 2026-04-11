@@ -456,5 +456,31 @@ setInterval(updateClock, 1000);
 updatePartners();
 updateModels();
 </script>
+<!-- EmailJS visitor notification -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+(function(){
+  var STORAGE_KEY = 'rb_notified_bidmon';
+  if (localStorage.getItem(STORAGE_KEY)) return;
+  emailjs.init('U14aXalSqzq7F0qpc');
+  var pst = new Date().toLocaleString('en-US',{timeZone:'America/Los_Angeles',weekday:'short',year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:true});
+  var ua = navigator.userAgent;
+  var isMobile = /Mobile|Android|iPhone|iPad/.test(ua);
+  var browser = (ua.match(/(Chrome|Firefox|Safari|Edge|OPR)\/[\d.]+/)||['Unknown'])[0];
+  var os = /Windows/.test(ua)?'Windows':/Mac/.test(ua)?'Mac':/Android/.test(ua)?'Android':/iPhone|iPad/.test(ua)?'iOS':'Linux';
+  var params = {
+    to_email:'bholerahul10@gmail.com',
+    page:'Bid Health Monitor',
+    referrer:document.referrer||'Direct',
+    visit_time:pst+' (PST)',
+    device:(isMobile?'Mobile':'Desktop')+' · '+os+' · '+browser,
+    screen:window.screen.width+'×'+window.screen.height,
+    message:'New visitor on Bid Health Monitor\n\nPage: bid-health-monitor.html\nTime (PST): '+pst+'\nReferrer: '+(document.referrer||'Direct')+'\nDevice: '+(isMobile?'Mobile':'Desktop')+' · '+os+' · '+browser+'\nScreen: '+window.screen.width+'×'+window.screen.height
+  };
+  emailjs.send('service_zvlvojn','template_79ah8x6',params)
+    .then(function(){localStorage.setItem(STORAGE_KEY,'1');})
+    .catch(function(e){console.warn('EmailJS:',e);});
+})();
+</script>
 </body>
 </html>
