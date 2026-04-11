@@ -1,0 +1,182 @@
+name: Daily PM Job Alert
+
+on:
+  schedule:
+    - cron: '17 14 * * 1-5'   # 7:17 AM PDT (Mon–Fri). In winter (PST) this fires at 6:17 AM — still fine.
+  workflow_dispatch:            # Allows manual trigger from GitHub Actions tab for testing
+
+jobs:
+  send-alert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and send daily PM job alert
+        run: |
+          python3 - << 'PYEOF'
+          import urllib.request, json, urllib.parse
+          from datetime import datetime, timezone, timedelta
+
+          # Pacific time (PDT = UTC-7, PST = UTC-8). Use -7 year-round for simplicity.
+          PAC = timezone(timedelta(hours=-7))
+          now = datetime.now(PAC)
+          date_str = now.strftime('%A, %b %d %Y')
+          time_str = now.strftime('%I:%M %p PDT')
+
+          def li(keywords, location=None, remote=False, label=None):
+              """Build a LinkedIn job search URL filtered to last 24h, Sr/Director level."""
+              p = {"keywords": keywords, "f_TPR": "r86400", "f_E": "4,5"}
+              if location:  p["location"] = location
+              if remote:    p["f_WT"] = "2"
+              url = "https://www.linkedin.com/jobs/search/?" + urllib.parse.urlencode(p)
+              return (label or keywords, url)
+
+          def indeed(q, location="Seattle, WA", label=None):
+              """Build an Indeed search URL filtered to last 1 day."""
+              p = {"q": q, "l": location, "fromage": "1", "explvl": "senior_level"}
+              url = "https://www.indeed.com/jobs?" + urllib.parse.urlencode(p)
+              return (label or q, url)
+
+          def builtin(q, label=None):
+              p = {"search": q}
+              url = "https://builtin.com/jobs/seattle?" + urllib.parse.urlencode(p)
+              return (label or q, url)
+
+          searches = [
+              # ── LinkedIn ─────────────────────────────────────────────────────
+              li("senior product manager machine learning",
+                 location="Seattle, WA",
+                 label="LinkedIn · Sr PM × Machine Learning [Seattle, 24h]"),
+
+              li("senior product manager artificial intelligence LLM",
+                 remote=True,
+                 label="LinkedIn · Sr PM × AI / LLM / GenAI [Remote, 24h]"),
+
+              li("senior product manager bidding platform adtech marketing",
+                 remote=True,
+                 label="LinkedIn · Sr PM × Bidding / AdTech [Remote, 24h]"),
+
+              li("senior product manager experimentation ROAS optimization",
+                 remote=True,
+                 label="LinkedIn · Sr PM × Experimentation / ROAS [Remote, 24h]"),
+
+              li("principal product manager ML platform data science",
+                 location="Seattle, WA",
+                 label="LinkedIn · Principal PM × ML Platform [Seattle, 24h]"),
+
+              li("group product manager machine learning advertising",
+                 remote=True,
+                 label="LinkedIn · Group PM × ML Ads [Remote, 24h]"),
+
+              # ── Indeed ────────────────────────────────────────────────────────
+              indeed("senior product manager machine learning AI",
+                     label="Indeed · Sr PM × ML / AI [Seattle, 1d]"),
+
+              indeed("senior product manager adtech marketing technology bidding",
+                     location="Remote",
+                     label="Indeed · Sr PM × AdTech / MarTech [Remote, 1d]"),
+
+              indeed("product manager LLM generative AI platform",
+                     location="Remote",
+                     label="Indeed · PM × LLM / GenAI Platform [Remote, 1d]"),
+
+              indeed("senior product manager ROAS campaign optimization",
+                     location="Remote",
+                     label="Indeed · Sr PM × ROAS / Campaigns [Remote, 1d]"),
+
+              # ── Other sources ─────────────────────────────────────────────────
+              builtin("product manager machine learning",
+                      label="Built In Seattle · PM × ML/AI [Seattle]"),
+
+              ("Wellfound · PM × Machine Learning [Remote]",
+               "https://wellfound.com/role/r/product-manager?remote=true&q=machine+learning"),
+
+              ("Dice · Sr PM × Data/ML [Seattle/Remote, 1d]",
+               "https://www.dice.com/jobs?" + urllib.parse.urlencode({
+                   "q": "senior product manager machine learning",
+                   "location": "Seattle, WA",
+                   "dateRange": "ONE"
+               })),
+
+              ("Glassdoor · Sr PM × AI/ML [Seattle, 24h]",
+               "https://www.glassdoor.com/Job/seattle-wa-senior-product-manager-ai-jobs-SRCH_IL.0,10_IC1150505_KO11,36_IP1.htm"),
+
+              ("Levels.fyi Jobs · PM × ML/AI [All locations]",
+               "https://www.levels.fyi/jobs/?jobType=pm&searchQuery=machine+learning"),
+
+              ("Y Combinator Jobs · PM roles [Remote/SF]",
+               "https://www.ycombinator.com/jobs/role/product-manager?remote=true"),
+          ]
+
+          # ── Build email body ────────────────────────────────────────────────
+          divider = "─" * 56
+
+          lines = [
+              f"🎯 Daily PM Job Alert — {date_str}",
+              "",
+              "Good morning Rahul! Your curated search links are ready.",
+              "Each link is pre-filtered to last 24h + senior level.",
+              "Review tonight and apply 🚀",
+              "",
+              divider,
+              "  📋 SEARCH LINKS  (" + str(len(searches)) + " sources)",
+              divider,
+              "",
+          ]
+
+          for label, url in searches:
+              lines.append(f"📌 {label}")
+              lines.append(f"   {url}")
+              lines.append("")
+
+          lines += [
+              divider,
+              "  🎯 YOUR STRONGEST KEYWORDS (use to spot-filter quickly)",
+              divider,
+              "",
+              "✅ ML bidding · ROAS · AdTech · auction mechanics",
+              "✅ A/B experimentation · LLM / GenAI PM · marketing ML",
+              "✅ $500M+ ad spend · multi-agent AI · platform PM",
+              "✅ CPM/CVR modeling · bid-to-value · marketing optimization",
+              "",
+              "🏢 Target companies:",
+              "   Google · Meta · Amazon · Microsoft · Booking.com",
+              "   Airbnb · TripAdvisor · Uber · Criteo · The Trade Desk",
+              "   OpenAI · Cohere · Anthropic · Databricks · Snowflake",
+              "",
+              divider,
+              f"Sent at {time_str}  ·  rahulb28.github.io/ai-pm-portfolio",
+              divider,
+          ]
+
+          message = "\n".join(lines)
+
+          # ── Send via EmailJS REST API ────────────────────────────────────────
+          payload = {
+              "service_id":  "service_zvlvojn",
+              "template_id": "template_94956u9",
+              "user_id":     "U14aXalSqzq7F0qpc",
+              "template_params": {
+                  "page":    f"Daily PM Job Alert — {date_str}",
+                  "message": message
+              }
+          }
+
+          req = urllib.request.Request(
+              "https://api.emailjs.com/api/v1.0/email/send",
+              data=json.dumps(payload).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "rahulb28-job-alert/1.0"
+              },
+              method="POST"
+          )
+
+          try:
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  body = resp.read().decode()
+                  print(f"✅ Job alert sent! EmailJS status {resp.status} · {body}")
+          except urllib.error.HTTPError as e:
+              body = e.read().decode()
+              print(f"❌ EmailJS error {e.code}: {body}")
+              raise SystemExit(1)
+
+          PYEOF
