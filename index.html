@@ -387,5 +387,48 @@ footer { text-align: center; padding: 32px; font-size: 12px; color: var(--muted)
   </script>
 </footer>
 
+<!-- EmailJS visitor notification -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+(function(){
+  var STORAGE_KEY = 'rb_notified_index';
+  if (localStorage.getItem(STORAGE_KEY)) return; // already notified for this browser
+
+  emailjs.init('U14aXalSqzq7F0qpc');
+
+  var now = new Date();
+  var pst = now.toLocaleString('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: true
+  });
+
+  var ua = navigator.userAgent;
+  var isMobile = /Mobile|Android|iPhone|iPad|iPod/.test(ua);
+  var browserMatch = ua.match(/(Chrome|Firefox|Safari|Edge|OPR)\/[\d.]+/);
+  var browser = browserMatch ? browserMatch[0] : 'Unknown';
+  var os = /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : /Android/.test(ua) ? 'Android' : /iOS|iPhone|iPad/.test(ua) ? 'iOS' : 'Unknown';
+
+  var params = {
+    to_email:   'bholerahul10@gmail.com',
+    page:       'Portfolio Home — rahulb28.github.io/ai-pm-portfolio/',
+    referrer:   document.referrer || 'Direct / No referrer',
+    visit_time: pst + ' (PST)',
+    device:     (isMobile ? 'Mobile' : 'Desktop') + ' · ' + os + ' · ' + browser,
+    screen:     window.screen.width + '×' + window.screen.height,
+    message:    'New visitor on Portfolio Home\n\n' +
+                'Page: rahulb28.github.io/ai-pm-portfolio/\n' +
+                'Time (PST): ' + pst + '\n' +
+                'Referrer: ' + (document.referrer || 'Direct') + '\n' +
+                'Device: ' + (isMobile ? 'Mobile' : 'Desktop') + ' · ' + os + ' · ' + browser + '\n' +
+                'Screen: ' + window.screen.width + '×' + window.screen.height
+  };
+
+  emailjs.send('service_zvlvojn', 'template_79ah8x6', params)
+    .then(function(){ localStorage.setItem(STORAGE_KEY, '1'); })
+    .catch(function(err){ console.warn('EmailJS error:', err); });
+})();
+</script>
+
 </body>
 </html>
