@@ -1309,7 +1309,7 @@ function setBadge(text,cls){
     screen:window.screen.width+'×'+window.screen.height,
     message:'New visitor on ACMI Lite\n\nPage: acmi-lite.html\nTime (PST): '+pst+'\nReferrer: '+(document.referrer||'Direct')+'\nDevice: '+(isMobile?'Mobile':'Desktop')+' · '+os+' · '+browser+'\nScreen: '+window.screen.width+'×'+window.screen.height
   };
-  emailjs.send('service_zvlvojn','template_79ah8x6',params)
+  emailjs.send('service_zvlvojn','template_94956u9',params)
     .then(function(){localStorage.setItem(STORAGE_KEY,'1');})
     .catch(function(e){console.warn('EmailJS:',e);});
 })();
