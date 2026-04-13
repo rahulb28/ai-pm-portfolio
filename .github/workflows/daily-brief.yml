@@ -1,0 +1,36 @@
+name: Daily Brief
+
+on:
+  schedule:
+    - cron: '0 14 * * 1-5'   # 7:00 AM PDT (Mon–Fri)
+    - cron: '0 15 * * 0,6'   # 8:00 AM PDT (Sat–Sun, slightly later)
+  workflow_dispatch:           # Manual trigger from GitHub UI
+
+jobs:
+  send-daily-brief:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install anthropic \
+                      google-auth \
+                      google-auth-httplib2 \
+                      google-api-python-client \
+                      google-auth-oauthlib
+
+      - name: Run Daily Brief Agent
+        env:
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_CLIENT_ID:     ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: |
+          python daily-brief-gha/daily_brief_agent.py
