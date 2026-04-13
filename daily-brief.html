@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Daily Brief Assistant — Rahul Bhole</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f5f9;
+  --surface: #ffffff;
+  --border: rgba(0,0,0,0.09);
+  --text: #1a1a2e;
+  --muted: #6b6b80;
+  --accent: #6c5ce7;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* NAV */
+.nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--surface); }
+.nav-back { font-size: 13px; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 6px; }
+.nav-back:hover { color: var(--accent); }
+.nav-badge { font-size: 11px; font-family: 'Syne', sans-serif; letter-spacing: 1px; color: var(--accent); text-transform: uppercase; }
+
+/* PAGE HEADER */
+.page-header { max-width: 780px; margin: 0 auto; padding: 52px 24px 40px; text-align: center; }
+.ph-tag { font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+.ph-title { font-family: 'Syne', sans-serif; font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 16px; }
+.ph-title span { color: var(--accent); }
+.ph-desc { font-size: 15px; color: var(--muted); line-height: 1.8; max-width: 620px; margin: 0 auto 28px; }
+
+/* HOW IT WORKS */
+.how { max-width: 880px; margin: 0 auto; padding: 0 24px 48px; }
+.how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 16px; }
+.how-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.how-icon { font-size: 22px; margin-bottom: 10px; }
+.how-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.how-desc { font-size: 12px; color: var(--muted); line-height: 1.65; }
+.section-label { font-family: 'Syne', sans-serif; font-size: 12px; letter-spacing: 0.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+
+/* TECH STACK */
+.tech { max-width: 880px; margin: 0 auto; padding: 0 24px 48px; }
+.tech-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tech-chip {
+  font-size: 11px; padding: 5px 12px; border-radius: 100px;
+  background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.2);
+  color: var(--accent); font-weight: 600; font-family: 'Syne', sans-serif;
+}
+
+/* PRIVACY BANNER */
+.privacy-banner {
+  max-width: 880px; margin: 0 auto 32px; padding: 0 24px;
+}
+.privacy-inner {
+  background: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px;
+  padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px;
+}
+.privacy-inner p { font-size: 13px; color: #78350f; line-height: 1.6; }
+.privacy-inner strong { color: #92400e; }
+
+/* BRIEF WRAPPER */
+.brief-wrapper { max-width: 640px; margin: 0 auto; padding: 0 24px 80px; }
+.brief-label { font-family: 'Syne', sans-serif; font-size: 12px; letter-spacing: 0.5px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.brief-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── BRIEF STYLES (email-safe, inline-able) ── */
+.brief { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f1f5f9; border-radius: 16px; overflow: hidden; }
+
+footer.site-footer { text-align: center; padding: 32px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-back">← Portfolio</a>
+  <span class="nav-badge">06 · Personal AI Tool</span>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="ph-tag">Personal AI Assistant</div>
+  <h1 class="ph-title">Rahul's AI<br><span>Daily Brief</span></h1>
+  <p class="ph-desc">
+    A personal AI assistant I built to start every morning with a clear, prioritized overview of my day.
+    It pulls together my calendar, emails, job search pipeline, kids' school updates, coursework deadlines,
+    and upcoming webinars — then emails me a beautifully formatted HTML brief before I even open my laptop.
+  </p>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="how">
+  <div class="section-label">What it does</div>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-icon">📅</div>
+      <div class="how-title">Calendar Intelligence</div>
+      <div class="how-desc">Reads Google Calendar, detects meeting gaps, and surfaces the best deep focus window of the day.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">🎯</div>
+      <div class="how-title">Job Search Pipeline</div>
+      <div class="how-desc">Scans ATS emails (Greenhouse, Lever, Workday), classifies each as Interview / Received / Rejection / Recruiter, and tracks active applications.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">📬</div>
+      <div class="how-title">Smart Inbox Triage</div>
+      <div class="how-desc">Filters out newsletters and promotions. Surfaces only real-person emails with urgent deadlines, RSVPs, or action items.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">🏫</div>
+      <div class="how-title">School & Family</div>
+      <div class="how-desc">Monitors teacher emails (Ms. Lund's class), permission slips, no-school days, and school events — so nothing slips through.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">📚</div>
+      <div class="how-title">Coursework & Webinars</div>
+      <div class="how-desc">Tracks assignment deadlines, webinar RSVPs, certification milestones, and any learning commitments in the next 7 days.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-icon">🚀</div>
+      <div class="how-title">Focus Plan</div>
+      <div class="how-desc">Synthesizes everything into a ranked top-3 priority list and the best focus window — so mornings start with clarity, not chaos.</div>
+    </div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="tech">
+  <div class="section-label">How it's built</div>
+  <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">
+    Built as a <strong style="color:var(--text);">Claude Code skill</strong> that runs inside my local Claude Code session with Gmail + Google Calendar MCP tools.
+    For fully automated morning delivery, a <strong style="color:var(--text);">GitHub Actions workflow</strong> runs at 7 AM daily using the Anthropic API
+    (claude-sonnet-4-6) with Gmail API + Calendar API + a custom tool-use agent loop.
+    The HTML brief is sent directly to my inbox via EmailJS — no drafts, always in the inbox.
+  </p>
+  <div class="tech-row">
+    <span class="tech-chip">Claude Sonnet 4.6</span>
+    <span class="tech-chip">Anthropic API</span>
+    <span class="tech-chip">Claude Code</span>
+    <span class="tech-chip">Gmail API</span>
+    <span class="tech-chip">Google Calendar API</span>
+    <span class="tech-chip">GitHub Actions</span>
+    <span class="tech-chip">EmailJS</span>
+    <span class="tech-chip">MCP Tools</span>
+    <span class="tech-chip">Tool-use Agent Loop</span>
+    <span class="tech-chip">Python</span>
+  </div>
+</div>
+
+<!-- PRIVACY BANNER -->
+<div class="privacy-banner">
+  <div class="privacy-inner">
+    <span style="font-size:20px;flex-shrink:0;">⚠️</span>
+    <p><strong>Sample data only.</strong> The brief below uses fictional calendar events, job applications, emails, and school updates to protect my privacy. The actual tool connects to my live Gmail and Google Calendar — names, companies, and dates shown here are entirely made up.</p>
+  </div>
+</div>
+
+<!-- SAMPLE BRIEF -->
+<div class="brief-wrapper">
+  <div class="brief-label">Live brief preview (sample data)</div>
+
+  <div class="brief" style="padding:16px;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+
+    <!-- HEADER -->
+    <tr><td style="background-color:#1e3a5f;border-radius:14px;padding:28px 24px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:8px;">🌅</div>
+      <div style="color:#93c5fd;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Tuesday, April 15, 2026</div>
+      <div style="color:#ffffff;font-size:20px;font-weight:700;font-family:sans-serif;margin-bottom:10px;">Good morning, Rahul!</div>
+      <div style="color:#bfdbfe;font-size:13px;font-family:sans-serif;line-height:1.6;">Big day — Netflix interview at 11 AM and a permission slip due by 3 PM. Your afternoon is wide open for deep prep. You've got this.</div>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- STATS -->
+    <tr><td>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td width="32%" style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #e2e8f0;">
+            <div style="font-size:28px;font-weight:700;color:#2563eb;font-family:sans-serif;">3</div>
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-family:sans-serif;">Meetings</div>
+          </td>
+          <td width="4%"></td>
+          <td width="32%" style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #e2e8f0;">
+            <div style="font-size:28px;font-weight:700;color:#d97706;font-family:sans-serif;">4</div>
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-family:sans-serif;">Action Items</div>
+          </td>
+          <td width="4%"></td>
+          <td width="32%" style="background:#fff;border-radius:10px;padding:14px;text-align:center;border:1px solid #e2e8f0;">
+            <div style="font-size:17px;font-weight:700;color:#059669;font-family:sans-serif;">2:30p</div>
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-family:sans-serif;">Focus Window</div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- SCHEDULE -->
+    <tr><td style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;">
+      <div style="font-size:15px;font-weight:700;color:#1e293b;font-family:sans-serif;margin-bottom:16px;">📅 Today's Schedule</div>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="vertical-align:top;width:85px;padding-bottom:14px;">
+            <span style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;font-family:sans-serif;">9:00 AM</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:14px;">
+            <div style="font-weight:600;color:#1e293b;font-size:13px;font-family:sans-serif;">☕ Team Standup</div>
+            <div style="color:#64748b;font-size:12px;font-family:sans-serif;">Product team &middot; 30 min &middot; Google Meet</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:85px;padding-bottom:14px;">
+            <span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;font-family:sans-serif;">11:00 AM</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:14px;">
+            <div style="font-weight:700;color:#92400e;font-size:13px;font-family:sans-serif;">🎯 Netflix — PM Interview (Technical Round)</div>
+            <div style="color:#64748b;font-size:12px;font-family:sans-serif;">Ads Platform &middot; 60 min &middot; Zoom</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:85px;padding-bottom:14px;">
+            <span style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;font-family:sans-serif;">1:30 PM</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:14px;">
+            <div style="font-weight:600;color:#1e293b;font-size:13px;font-family:sans-serif;">📚 AI for PMs Webinar</div>
+            <div style="color:#64748b;font-size:12px;font-family:sans-serif;">Maven &middot; 60 min &middot; Live stream</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:85px;">
+            <span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;font-family:sans-serif;">2:30 PM+</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;">
+            <div style="font-weight:600;color:#065f46;font-size:13px;font-family:sans-serif;">🧠 Deep Focus Block</div>
+            <div style="color:#64748b;font-size:12px;font-family:sans-serif;">Rest of day free &mdash; interview follow-up + coursework</div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- JOB PIPELINE -->
+    <tr><td style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;">
+      <div style="font-size:15px;font-weight:700;color:#1e293b;font-family:sans-serif;margin-bottom:4px;">🎯 Job Pipeline</div>
+      <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-bottom:16px;">Active: 24 applications &middot; 1 interview today</div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:10px;border:1px solid #e2e8f0;margin-bottom:14px;">
+        <tr style="background-color:#1e3a5f;">
+          <td style="padding:9px 14px;color:#93c5fd;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;font-family:sans-serif;">Status</td>
+          <td style="padding:9px 14px;color:#93c5fd;font-size:11px;font-weight:700;text-align:right;font-family:sans-serif;">Count</td>
+        </tr>
+        <tr style="background:#f0fdf4;">
+          <td style="padding:9px 14px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">🟢 Active (no rejection yet)</td>
+          <td style="padding:9px 14px;font-size:14px;font-weight:700;color:#065f46;text-align:right;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">24</td>
+        </tr>
+        <tr style="background:#fff;">
+          <td style="padding:9px 14px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">📨 Received / Confirmed (last 48h)</td>
+          <td style="padding:9px 14px;font-size:14px;font-weight:700;color:#2563eb;text-align:right;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">3</td>
+        </tr>
+        <tr style="background:#f0fdf4;">
+          <td style="padding:9px 14px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">🎯 Interviews / Next Steps</td>
+          <td style="padding:9px 14px;font-size:14px;font-weight:700;color:#065f46;text-align:right;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">1</td>
+        </tr>
+        <tr style="background:#fff;">
+          <td style="padding:9px 14px;font-size:13px;color:#1e293b;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">👤 Real Recruiter Threads</td>
+          <td style="padding:9px 14px;font-size:14px;font-weight:700;color:#7c3aed;text-align:right;border-bottom:1px solid #e2e8f0;font-family:sans-serif;">2</td>
+        </tr>
+        <tr style="background:#fff5f5;">
+          <td style="padding:9px 14px;font-size:13px;color:#1e293b;font-family:sans-serif;">❌ Rejections (last 48h)</td>
+          <td style="padding:9px 14px;font-size:14px;font-weight:700;color:#dc2626;text-align:right;font-family:sans-serif;">1</td>
+        </tr>
+      </table>
+
+      <!-- Interview highlight -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;margin-bottom:10px;">
+        <tr><td style="padding:14px;">
+          <span style="background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;font-family:sans-serif;">🔥 INTERVIEW TODAY</span>
+          <div style="font-weight:700;color:#1e293b;font-size:14px;font-family:sans-serif;margin-top:8px;">Sr. PM, Ads Platform — <span style="color:#92400e;">Netflix</span></div>
+          <div style="color:#78716c;font-size:12px;font-family:sans-serif;margin-top:3px;">11:00 AM · Technical Round · Prep: ML bidding, ROAS metrics, A/B experimentation</div>
+        </td></tr>
+      </table>
+
+      <!-- Recruiters -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-bottom:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:700;color:#065f46;font-size:13px;font-family:sans-serif;">👤 Recruiter Outreach — OpenAI &amp; Databricks</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;">Both inbound. OpenAI: reply by Thursday. Databricks: call scheduled Friday.</div>
+        </td></tr>
+      </table>
+
+      <!-- Others -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:10px;margin-bottom:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:600;color:#1e293b;font-size:13px;font-family:sans-serif;margin-bottom:4px;">📨 Applications confirmed (last 48h)</div>
+          <div style="color:#64748b;font-size:13px;font-family:sans-serif;">Google DeepMind &nbsp;&middot;&nbsp; Booking.com &nbsp;&middot;&nbsp; Airbnb</div>
+        </td></tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff5f5;border:1px solid #fecaca;border-radius:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:600;color:#991b1b;font-size:13px;font-family:sans-serif;">❌ Snap &mdash; Rejection received</div>
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- ACTION ITEMS -->
+    <tr><td style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;">
+      <div style="font-size:15px;font-weight:700;color:#1e293b;font-family:sans-serif;margin-bottom:16px;">📬 Action Items</div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #ef4444;background:#fef2f2;border-radius:0 10px 10px 0;margin-bottom:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:700;color:#1e293b;font-size:13px;font-family:sans-serif;">🔴 Netflix Interview Prep — Today 11 AM</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;">Review ML bidding frameworks, ROAS decomposition, A/B testing scenarios. <strong>2 hours to go.</strong></div>
+        </td></tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #ef4444;background:#fef2f2;border-radius:0 10px 10px 0;margin-bottom:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:700;color:#1e293b;font-size:13px;font-family:sans-serif;">🔴 Field Trip Permission Slip — Due 3 PM TODAY</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;">Aiden's class trip to Pacific Science Center. Sign &amp; return by end of school day.</div>
+        </td></tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #f59e0b;background:#fffbeb;border-radius:0 10px 10px 0;margin-bottom:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:700;color:#1e293b;font-size:13px;font-family:sans-serif;">🟡 OpenAI Recruiter — Reply by Thursday</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;">Confirm interest in PM, Foundation Models role. Inbound outreach — high priority.</div>
+        </td></tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #f59e0b;background:#fffbeb;border-radius:0 10px 10px 0;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:700;color:#1e293b;font-size:13px;font-family:sans-serif;">🟡 Coursera Assignment — Due Friday</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;">AI Product Management capstone · Module 4 submission. ~2 hrs remaining.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- MS. LUND -->
+    <tr><td style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;">
+      <div style="font-size:15px;font-weight:700;color:#1e293b;font-family:sans-serif;margin-bottom:12px;">👩‍🏫 Ms. Lund's Class (Northshore Elementary)</div>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #0ea5e9;background:#f0f9ff;border-radius:0 10px 10px 0;margin-bottom:10px;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:600;color:#0c4a6e;font-size:13px;font-family:sans-serif;">📧 Field Trip — Pacific Science Center &middot; Apr 18</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;"><strong>Permission slip due TODAY by 3 PM.</strong> Please also send $8 for lunch.</div>
+        </td></tr>
+      </table>
+      <table width="100%" cellpadding="0" cellspacing="0" style="border-left:4px solid #0ea5e9;background:#f0f9ff;border-radius:0 10px 10px 0;">
+        <tr><td style="padding:12px 14px;">
+          <div style="font-weight:600;color:#0c4a6e;font-size:13px;font-family:sans-serif;">📅 No School — Apr 22 (Spring Break starts)</div>
+          <div style="color:#64748b;font-size:12px;font-family:sans-serif;margin-top:3px;">School resumes May 1. Volunteer opportunities Apr 25 if interested.</div>
+        </td></tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- DEADLINES & REMINDERS -->
+    <tr><td style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;">
+      <div style="font-size:15px;font-weight:700;color:#1e293b;font-family:sans-serif;margin-bottom:14px;">🗓 Deadlines &amp; Reminders</div>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="vertical-align:top;padding-bottom:10px;width:110px;">
+            <span style="background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:sans-serif;">TODAY</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">
+            Netflix interview · Lund permission slip due
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;padding-bottom:10px;">
+            <span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:sans-serif;">THU APR 17</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">
+            Coursera Module 4 due · OpenAI recruiter reply deadline
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;padding-bottom:10px;">
+            <span style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:sans-serif;">FRI APR 18</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">
+            Aiden's field trip · Databricks call
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;">
+            <span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;font-family:sans-serif;">APR 22</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">
+            No school — Spring break begins
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- FOCUS PLAN -->
+    <tr><td style="background:#064e3b;border-radius:12px;padding:20px;">
+      <div style="font-size:15px;font-weight:700;color:#6ee7b7;font-family:sans-serif;margin-bottom:14px;">🚀 Today's Focus Plan</div>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="vertical-align:top;width:30px;padding-bottom:10px;">
+            <div style="background:#10b981;color:#fff;font-size:12px;font-weight:700;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-family:sans-serif;">1</div>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;color:#ecfdf5;font-size:13px;font-family:sans-serif;">
+            <strong>Netflix interview prep</strong> — review ML bidding &amp; ROAS frameworks before 11 AM
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:30px;padding-bottom:10px;">
+            <div style="background:#10b981;color:#fff;font-size:12px;font-weight:700;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-family:sans-serif;">2</div>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;color:#ecfdf5;font-size:13px;font-family:sans-serif;">
+            <strong>Sign permission slip</strong> — Aiden's field trip, due 3 PM, send $8 for lunch
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:30px;">
+            <div style="background:#10b981;color:#fff;font-size:12px;font-weight:700;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-family:sans-serif;">3</div>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;color:#ecfdf5;font-size:13px;font-family:sans-serif;">
+            <strong>Reply to OpenAI recruiter</strong> — inbound outreach, high priority, deadline Thursday
+          </td>
+        </tr>
+      </table>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid #065f46;color:#6ee7b7;font-size:12px;font-family:sans-serif;">
+        ⏰ Best focus window: <strong style="color:#a7f3d0;">2:30 PM – 6:30 PM</strong>
+      </div>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- TOMORROW PREVIEW -->
+    <tr><td style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;">
+      <div style="font-size:15px;font-weight:700;color:#1e293b;font-family:sans-serif;margin-bottom:14px;">👀 Tomorrow's Preview</div>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="vertical-align:top;width:85px;padding-bottom:10px;">
+            <span style="background:#f3f4f6;color:#374151;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;font-family:sans-serif;">9:30 AM</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">Databricks Recruiter Call</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:85px;padding-bottom:10px;">
+            <span style="background:#f3f4f6;color:#374151;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;font-family:sans-serif;">1:00 PM</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;padding-bottom:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">Coursera Module 4 deadline</td>
+        </tr>
+        <tr>
+          <td style="vertical-align:top;width:85px;">
+            <span style="background:#f3f4f6;color:#374151;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;font-family:sans-serif;">3:00 PM</span>
+          </td>
+          <td style="vertical-align:top;padding-left:10px;font-size:13px;color:#1e293b;font-family:sans-serif;">Pick up Aiden · School ends early</td>
+        </tr>
+      </table>
+    </td></tr>
+
+    <tr><td style="height:12px;"></td></tr>
+
+    <!-- FOOTER -->
+    <tr><td style="text-align:center;color:#94a3b8;font-size:11px;padding:8px;font-family:sans-serif;">
+      rahulb28.github.io/ai-pm-portfolio &nbsp;&middot;&nbsp; Built by Rahul Bhole with Claude Code
+    </td></tr>
+
+  </table>
+  </div><!-- end .brief -->
+</div><!-- end .brief-wrapper -->
+
+<footer class="site-footer">
+  &copy; 2026 Rahul Bhole &nbsp;&middot;&nbsp; <a href="index.html" style="color:var(--accent);text-decoration:none;">← Back to Portfolio</a>
+</footer>
+
+</body>
+</html>
