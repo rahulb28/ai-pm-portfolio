@@ -217,7 +217,11 @@ def send_emailjs(page: str, message: str) -> str:
     req = urllib.request.Request(
         "https://api.emailjs.com/api/v1.0/email/send",
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0",
+            "Origin": "https://rahulb28.github.io",
+        },
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
