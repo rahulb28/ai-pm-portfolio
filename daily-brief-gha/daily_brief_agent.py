@@ -258,18 +258,6 @@ TOOLS = [
             "required": ["time_min", "time_max"],
         },
     },
-    {
-        "name": "send_email",
-        "description": "Send the completed HTML daily brief to Rahul's inbox via EmailJS.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "subject":   {"type": "string"},
-                "html_body": {"type": "string"},
-            },
-            "required": ["subject", "html_body"],
-        },
-    },
 ]
 
 # ── Tool executor ────────────────────────────────────────────────────────────────
@@ -281,9 +269,6 @@ def execute_tool(name: str, inputs: dict) -> str:
             return json.dumps(gmail_read(inputs["message_id"]))
         elif name == "calendar_list_events":
             return json.dumps(calendar_list_events(inputs["time_min"], inputs["time_max"]))
-        elif name == "send_email":
-            status = send_emailjs(inputs["subject"], inputs["html_body"])
-            return f"Email sent. EmailJS: {status}"
         else:
             return f"Unknown tool: {name}"
     except Exception as e:
@@ -368,22 +353,27 @@ Section order:
 8. 👩‍🏫 Ms. Lund's Class — sky-blue left border
 9. 👀 Tomorrow Preview
 
-After building the HTML, call send_email:
-- subject: "🌅 Daily Brief + 💼 Job Postings — {DATE_STR}"
-- html_body: full HTML string
+After building the HTML email, output it as your FINAL message wrapped in exactly these tags (nothing before or after):
+
+<DAILY_BRIEF_HTML>
+...your full HTML here...
+</DAILY_BRIEF_HTML>
 
 ## Rules
-- Table-based layout only. All styles inline.
+- Table-based layout only. All styles inline. Max width 600px.
 - NEVER skip the Job Pipeline or Fresh Job Postings sections.
 - For Fresh Job Postings: only use the URLs provided above — never fabricate links.
 - If Ms. Lund section is empty, say so.
 - Do not ask for clarification.
+- Your LAST message must contain ONLY the <DAILY_BRIEF_HTML>...</DAILY_BRIEF_HTML> block and nothing else.
 """
 
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     messages = [{"role": "user", "content": f"Run my consolidated daily brief + job postings for {DATE_STR}."}]
 
     print(f"🌅 Starting consolidated daily brief for {DATE_STR}...")
+
+    html_body = None
 
     while True:
         response = client.messages.create(
@@ -397,10 +387,16 @@ After building the HTML, call send_email:
         print(f"  → stop_reason: {response.stop_reason}")
         for block in response.content:
             if hasattr(block, "text"):
-                print(f"  Claude: {block.text[:200]}")
+                text = block.text
+                print(f"  Claude: {text[:200]}")
+                # Extract HTML if present
+                if "<DAILY_BRIEF_HTML>" in text and "</DAILY_BRIEF_HTML>" in text:
+                    start = text.index("<DAILY_BRIEF_HTML>") + len("<DAILY_BRIEF_HTML>")
+                    end   = text.index("</DAILY_BRIEF_HTML>")
+                    html_body = text[start:end].strip()
+                    print(f"  📧 HTML extracted ({len(html_body):,} chars)")
 
         if response.stop_reason == "end_turn":
-            print("✅ Consolidated daily brief sent.")
             break
 
         tool_uses = [b for b in response.content if b.type == "tool_use"]
@@ -417,6 +413,15 @@ After building the HTML, call send_email:
                 "content": execute_tool(tu.name, tu.input),
             })
         messages.append({"role": "user", "content": tool_results})
+
+    # Send email from Python (not through Claude tool — avoids context-length issues)
+    if html_body:
+        subject = f"🌅 Daily Brief + 💼 Job Postings — {DATE_STR}"
+        print(f"  📤 Sending via EmailJS...")
+        result = send_emailjs(subject, html_body)
+        print(f"✅ Email sent! EmailJS response: {result}")
+    else:
+        print("⚠️  No HTML found in Claude's output — check logs above.")
 
 if __name__ == "__main__":
     run()
