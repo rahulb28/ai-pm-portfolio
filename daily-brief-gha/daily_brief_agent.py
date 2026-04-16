@@ -374,10 +374,13 @@ After building the HTML email, output it as your FINAL message wrapped in exactl
     print(f"🌅 Starting consolidated daily brief for {DATE_STR}...")
 
     html_body = None
+    max_iterations = 20  # hard cap — prevents runaway loops burning credits
+    iteration = 0
 
-    while True:
+    while iteration < max_iterations:
+        iteration += 1
         response = client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=8096,
             system=system_prompt,
             tools=TOOLS,
