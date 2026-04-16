@@ -373,9 +373,17 @@ After building the HTML email, output it as your FINAL message wrapped in exactl
 
     print(f"🌅 Starting consolidated daily brief for {DATE_STR}...")
 
-    html_body = None
-    max_iterations = 20  # hard cap — prevents runaway loops burning credits
-    iteration = 0
+    # Cost guardrail — Haiku 4.5 pricing (per token)
+    COST_INPUT_PER_TOKEN  = 0.80  / 1_000_000   # $0.80 / 1M input tokens
+    COST_OUTPUT_PER_TOKEN = 4.00  / 1_000_000   # $4.00 / 1M output tokens
+    DAILY_COST_LIMIT      = 0.05                 # hard stop at $0.05/day
+    total_cost            = 0.0
+    total_input_tokens    = 0
+    total_output_tokens   = 0
+
+    html_body     = None
+    max_iterations = 20  # secondary safety cap
+    iteration      = 0
 
     while iteration < max_iterations:
         iteration += 1
@@ -387,12 +395,47 @@ After building the HTML email, output it as your FINAL message wrapped in exactl
             messages=messages,
         )
 
-        print(f"  → stop_reason: {response.stop_reason}")
+        # ── Cost tracking ──────────────────────────────────────────────────────
+        usage = response.usage
+        call_input  = getattr(usage, "input_tokens",  0)
+        call_output = getattr(usage, "output_tokens", 0)
+        call_cost   = (call_input * COST_INPUT_PER_TOKEN) + (call_output * COST_OUTPUT_PER_TOKEN)
+        total_input_tokens  += call_input
+        total_output_tokens += call_output
+        total_cost          += call_cost
+        print(f"  💰 call={call_cost:.4f}$ | cumulative={total_cost:.4f}$ "
+              f"(in={total_input_tokens:,} out={total_output_tokens:,})")
+
+        if total_cost >= DAILY_COST_LIMIT:
+            print(f"🛑 Cost guardrail hit: ${total_cost:.4f} >= ${DAILY_COST_LIMIT}. Stopping.")
+            # Send a fallback alert email so Rahul knows the run was cut short
+            alert_html = f"""<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+              <div style="background:#7f1d1d;color:#fef2f2;border-radius:12px;padding:20px 24px;margin-bottom:16px">
+                <strong style="font-size:16px">⚠️ Daily Brief — Cost Guardrail Triggered</strong>
+              </div>
+              <p style="color:#374151;font-size:14px;line-height:1.6">
+                The daily brief agent was stopped after spending
+                <strong>${total_cost:.4f}</strong> (limit: ${DAILY_COST_LIMIT}).
+                This means the brief was not fully generated today.<br><br>
+                <strong>Tokens used:</strong> {total_input_tokens:,} input / {total_output_tokens:,} output<br>
+                <strong>Iterations:</strong> {iteration}<br><br>
+                Check the GitHub Actions logs for details:
+                <a href="https://github.com/rahulb28/ai-pm-portfolio/actions">View logs →</a>
+              </p>
+            </div>"""
+            try:
+                send_emailjs(f"⚠️ Daily Brief stopped — cost limit hit ({DATE_STR})", alert_html)
+                print("  📧 Alert email sent.")
+            except Exception as e:
+                print(f"  Alert email failed: {e}")
+            break
+        # ──────────────────────────────────────────────────────────────────────
+
+        print(f"  → stop_reason: {response.stop_reason} | iter {iteration}/{max_iterations}")
         for block in response.content:
             if hasattr(block, "text"):
                 text = block.text
                 print(f"  Claude: {text[:200]}")
-                # Extract HTML if present
                 if "<DAILY_BRIEF_HTML>" in text and "</DAILY_BRIEF_HTML>" in text:
                     start = text.index("<DAILY_BRIEF_HTML>") + len("<DAILY_BRIEF_HTML>")
                     end   = text.index("</DAILY_BRIEF_HTML>")
@@ -417,6 +460,8 @@ After building the HTML email, output it as your FINAL message wrapped in exactl
             })
         messages.append({"role": "user", "content": tool_results})
 
+    print(f"\n📊 Total cost: ${total_cost:.4f} | {total_input_tokens:,} input + {total_output_tokens:,} output tokens")
+
     # Send email from Python (not through Claude tool — avoids context-length issues)
     if html_body:
         subject = f"🌅 Daily Brief + 💼 Job Postings — {DATE_STR}"
@@ -424,7 +469,8 @@ After building the HTML email, output it as your FINAL message wrapped in exactl
         result = send_emailjs(subject, html_body)
         print(f"✅ Email sent! EmailJS response: {result}")
     else:
-        print("⚠️  No HTML found in Claude's output — check logs above.")
+        if total_cost < DAILY_COST_LIMIT:
+            print("⚠️  No HTML found in Claude's output — check logs above.")
 
 if __name__ == "__main__":
     run()
