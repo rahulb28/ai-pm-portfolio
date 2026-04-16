@@ -75,6 +75,47 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tag-ai{background:#d1fae5;color:var(--green)}
 .tag-rule{background:#fef3c7;color:var(--amber)}
 
+/* END-TO-END EXAMPLE */
+.example-wrap{margin-top:28px}
+.example-scenario{background:#1e293b;border-radius:12px 12px 0 0;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.scenario-label{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;margin-right:4px}
+.scenario-chip{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:100px}
+.sc-query{background:rgba(165,180,252,0.15);color:#a5b4fc;border:1px solid rgba(165,180,252,0.3)}
+.sc-device{background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.3)}
+.sc-channel{background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.3)}
+.sc-persona{background:rgba(251,113,133,0.15);color:#fb7185;border:1px solid rgba(251,113,133,0.3)}
+
+.example-steps{border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden}
+.ex-step{display:grid;grid-template-columns:200px 1fr;border-bottom:1px solid var(--border)}
+.ex-step:last-child{border-bottom:none}
+.ex-step-left{padding:18px 20px;background:#f8f9fc;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.ex-step-num{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.ex-step-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:var(--text);line-height:1.2}
+.ex-step-tag{font-size:9px;font-family:'Syne',sans-serif;font-weight:700;padding:2px 7px;border-radius:4px;width:fit-content}
+.ex-step-right{padding:18px 20px;background:var(--surface)}
+.ex-output-label{font-family:'Syne',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.ex-data{font-family:'DM Sans',monospace;font-size:12px;line-height:1.7;color:var(--text)}
+.ex-data .key{color:var(--muted);font-size:11px}
+.ex-data .val{color:var(--text);font-weight:500}
+.ex-data .val-good{color:var(--green);font-weight:600}
+.ex-data .val-bad{color:var(--red);font-weight:600}
+.ex-data .val-warn{color:var(--amber);font-weight:600}
+.ex-data .val-ai{color:var(--accent);font-weight:600}
+.ex-row{display:flex;gap:8px;margin-bottom:4px;align-items:baseline;flex-wrap:wrap}
+.ex-pill{font-size:10px;font-family:'Syne',sans-serif;font-weight:700;padding:1px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.pill-fail{background:#fef2f2;color:var(--red);border:1px solid #fecaca}
+.pill-pass{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+.pill-ai{background:#ede9fe;color:var(--accent);border:1px solid #ddd6fe}
+.pill-warn{background:#fffbeb;color:var(--amber);border:1px solid #fde68a}
+.score-bar{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.score-label{font-size:11px;color:var(--muted);width:60px;flex-shrink:0}
+.score-track{flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px}
+.score-val{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;width:28px;text-align:right}
+.hyp-box{background:#ede9fe;border:1px solid #c4b5fd;border-radius:8px;padding:12px 14px;font-size:12px;color:#4c1d95;line-height:1.65;font-style:italic}
+.hyp-box strong{color:#3730a3;font-style:normal}
+@media(max-width:620px){.ex-step{grid-template-columns:1fr}.ex-step-left{border-right:none;border-bottom:1px solid var(--border)}}
+
 /* WHAT THE AI DOES — 2 col */
 .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:580px){.ai-grid{grid-template-columns:1fr}}
@@ -233,6 +274,188 @@ footer{text-align:center;padding:28px;font-size:12px;color:var(--muted);border-t
       </div>
     </div>
   </div>
+
+  <!-- END-TO-END EXAMPLE -->
+  <div class="sec-header" style="margin-top:40px">
+    <span class="sec-label">Live Example</span>
+    <h2 class="sec-title">End-to-end walkthrough with sample data</h2>
+  </div>
+  <div class="example-wrap">
+
+    <!-- Scenario bar -->
+    <div class="example-scenario">
+      <span class="scenario-label">Audit run ·</span>
+      <span class="scenario-chip sc-query">🔍 "last minute hotel NYC tonight"</span>
+      <span class="scenario-chip sc-device">📱 Mobile (iOS)</span>
+      <span class="scenario-chip sc-channel">💰 Google Paid Search</span>
+      <span class="scenario-chip sc-persona">👤 Last-Minute Leisure Traveler</span>
+    </div>
+
+    <div class="example-steps">
+
+      <!-- STEP 1: Journey Setup -->
+      <div class="ex-step">
+        <div class="ex-step-left">
+          <div class="ex-step-num">Stage 01</div>
+          <div class="ex-step-name">Journey Setup</div>
+          <span class="ex-step-tag tag-auto">Automated</span>
+        </div>
+        <div class="ex-step-right">
+          <div class="ex-output-label">Intake parameters</div>
+          <div class="ex-data">
+            <div class="ex-row"><span class="key">Query &nbsp;&nbsp;&nbsp;</span><span class="val">"last minute hotel NYC tonight"</span></div>
+            <div class="ex-row"><span class="key">Channel &nbsp;</span><span class="val">Google Paid Search</span></div>
+            <div class="ex-row"><span class="key">Device &nbsp;&nbsp;</span><span class="val">Mobile · iOS · 390px viewport</span></div>
+            <div class="ex-row"><span class="key">Scope &nbsp;&nbsp;&nbsp;</span><span class="val">Acquisition → Landing → Results → Detail → Checkout entry</span></div>
+            <div class="ex-row"><span class="key">Focus &nbsp;&nbsp;&nbsp;</span><span class="val">Trust signals, urgency cues, price consistency</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Persona -->
+      <div class="ex-step">
+        <div class="ex-step-left">
+          <div class="ex-step-num">Stage 02</div>
+          <div class="ex-step-name">Persona Select</div>
+          <span class="ex-step-tag tag-auto">Automated</span>
+        </div>
+        <div class="ex-step-right">
+          <div class="ex-output-label">Active persona definition</div>
+          <div class="ex-data">
+            <div class="ex-row"><span class="key">Name &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="val-ai">Last-Minute Leisure Traveler</span></div>
+            <div class="ex-row"><span class="key">Intent &nbsp;&nbsp;&nbsp;</span><span class="val">Book tonight — decision window &lt; 2 hrs</span></div>
+            <div class="ex-row"><span class="key">Priority 1</span><span class="val">Availability confirmed for tonight</span></div>
+            <div class="ex-row"><span class="key">Priority 2</span><span class="val">Price anchor visible immediately</span></div>
+            <div class="ex-row"><span class="key">Priority 3</span><span class="val">Easy checkout — minimal friction</span></div>
+            <div class="ex-row"><span class="key">Red flags &nbsp;</span><span class="val-bad">Price change mid-funnel · Hidden fees · Generic results</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Funnel Walk -->
+      <div class="ex-step">
+        <div class="ex-step-left">
+          <div class="ex-step-num">Stage 03</div>
+          <div class="ex-step-name">Funnel Walk</div>
+          <span class="ex-step-tag tag-auto">Automated</span>
+        </div>
+        <div class="ex-step-right">
+          <div class="ex-output-label">Surface-by-surface observations</div>
+          <div class="ex-data">
+            <div class="ex-row" style="margin-bottom:10px">
+              <span style="font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:var(--muted);width:110px;flex-shrink:0">📢 Ad copy</span>
+              <span class="val" style="background:#f1f5f9;border-radius:6px;padding:4px 10px;font-size:11.5px;color:#334155">"Tonight's Best NYC Hotels — From <strong>$89</strong>/night. Book Now. Limited availability."</span>
+            </div>
+            <div class="ex-row" style="margin-bottom:10px">
+              <span style="font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:var(--muted);width:110px;flex-shrink:0">🏠 Landing page</span>
+              <span class="val" style="background:#fef2f2;border-radius:6px;padding:4px 10px;font-size:11.5px;color:#334155">First visible price: <strong style="color:var(--red)">$129/night</strong>. No urgency message. Flexibility options below fold. Filter bar not visible on mobile.</span>
+            </div>
+            <div class="ex-row" style="margin-bottom:10px">
+              <span style="font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:var(--muted);width:110px;flex-shrink:0">📋 Results page</span>
+              <span class="val" style="background:#f8f9fc;border-radius:6px;padding:4px 10px;font-size:11.5px;color:#334155">Generic sort: "Recommended." No scarcity signals. "Only 2 rooms left" hidden inside detail page. Filters collapsed behind tap.</span>
+            </div>
+            <div class="ex-row">
+              <span style="font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:var(--muted);width:110px;flex-shrink:0">🏨 Detail page</span>
+              <span class="val" style="background:#f8f9fc;border-radius:6px;padding:4px 10px;font-size:11.5px;color:#334155">Cancellation policy visible. Price breakdown shown. CTA above fold. ✓ Clean.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Issue Detection -->
+      <div class="ex-step">
+        <div class="ex-step-left">
+          <div class="ex-step-num">Stage 04</div>
+          <div class="ex-step-name">Issue Detection</div>
+          <span class="ex-step-tag tag-rule">Rule + AI</span>
+        </div>
+        <div class="ex-step-right">
+          <div class="ex-output-label">Detected issues — rule-based checks first, then AI</div>
+          <div class="ex-data" style="display:flex;flex-direction:column;gap:8px">
+            <div class="ex-row"><span class="ex-pill pill-fail">RULE FAIL</span><span class="val" style="font-size:12px">Price in ad ($89) ≠ first price on landing ($129) — 45% gap</span></div>
+            <div class="ex-row"><span class="ex-pill pill-fail">RULE FAIL</span><span class="val" style="font-size:12px">Filter bar not visible on mobile without extra tap</span></div>
+            <div class="ex-row"><span class="ex-pill pill-pass">RULE PASS</span><span class="val" style="font-size:12px">Checkout CTA is above fold on detail page</span></div>
+            <div class="ex-row"><span class="ex-pill pill-pass">RULE PASS</span><span class="val" style="font-size:12px">Query "NYC tonight" carried through to results page</span></div>
+            <div class="ex-row"><span class="ex-pill pill-ai">AI FINDING</span><span class="val" style="font-size:12px">No urgency signals for tonight availability — persona needs "2 rooms left" or "book before X PM" framing</span></div>
+            <div class="ex-row"><span class="ex-pill pill-ai">AI FINDING</span><span class="val" style="font-size:12px">Ad says "deals" — landing shows standard rate card. Trust gap: persona expecting a curated deal, not standard pricing</span></div>
+            <div class="ex-row"><span class="ex-pill pill-warn">AI NOTE</span><span class="val" style="font-size:12px">Results sort "Recommended" is ambiguous for last-minute intent — "Available Tonight" sort would be more relevant</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5: Severity Scoring -->
+      <div class="ex-step">
+        <div class="ex-step-left">
+          <div class="ex-step-num">Stage 05</div>
+          <div class="ex-step-name">Severity Score</div>
+          <span class="ex-step-tag tag-rule">Rule-based</span>
+        </div>
+        <div class="ex-step-right">
+          <div class="ex-output-label">Top 3 issues scored on reach · impact · fix speed</div>
+          <div style="display:flex;flex-direction:column;gap:16px;margin-top:4px">
+
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700">Price mismatch (ad → landing)</span>
+                <span class="ex-pill pill-fail" style="font-size:10px">Score 14 / 15</span>
+              </div>
+              <div class="score-bar"><span class="score-label">Reach</span><div class="score-track"><div class="score-fill" style="width:100%;background:var(--red)"></div></div><span class="score-val" style="color:var(--red)">5/5</span></div>
+              <div class="score-bar"><span class="score-label">Impact</span><div class="score-track"><div class="score-fill" style="width:90%;background:var(--amber)"></div></div><span class="score-val" style="color:var(--amber)">4/5</span></div>
+              <div class="score-bar"><span class="score-label">Fix speed</span><div class="score-track"><div class="score-fill" style="width:100%;background:var(--green)"></div></div><span class="score-val" style="color:var(--green)">5/5</span></div>
+            </div>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700">No urgency signals on results</span>
+                <span class="ex-pill pill-warn" style="font-size:10px">Score 10 / 15</span>
+              </div>
+              <div class="score-bar"><span class="score-label">Reach</span><div class="score-track"><div class="score-fill" style="width:40%;background:var(--amber)"></div></div><span class="score-val" style="color:var(--amber)">2/5</span></div>
+              <div class="score-bar"><span class="score-label">Impact</span><div class="score-track"><div class="score-fill" style="width:80%;background:var(--amber)"></div></div><span class="score-val" style="color:var(--amber)">4/5</span></div>
+              <div class="score-bar"><span class="score-label">Fix speed</span><div class="score-track"><div class="score-fill" style="width:80%;background:var(--green)"></div></div><span class="score-val" style="color:var(--green)">4/5</span></div>
+            </div>
+
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700">Mobile filters hidden</span>
+                <span class="ex-pill pill-warn" style="font-size:10px">Score 9 / 15</span>
+              </div>
+              <div class="score-bar"><span class="score-label">Reach</span><div class="score-track"><div class="score-fill" style="width:60%;background:var(--amber)"></div></div><span class="score-val" style="color:var(--amber)">3/5</span></div>
+              <div class="score-bar"><span class="score-label">Impact</span><div class="score-track"><div class="score-fill" style="width:60%;background:var(--amber)"></div></div><span class="score-val" style="color:var(--amber)">3/5</span></div>
+              <div class="score-bar"><span class="score-label">Fix speed</span><div class="score-track"><div class="score-fill" style="width:60%;background:var(--green)"></div></div><span class="score-val" style="color:var(--green)">3/5</span></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: Hypotheses -->
+      <div class="ex-step">
+        <div class="ex-step-left">
+          <div class="ex-step-num">Stage 06</div>
+          <div class="ex-step-name">Hypotheses</div>
+          <span class="ex-step-tag tag-ai">AI</span>
+        </div>
+        <div class="ex-step-right">
+          <div class="ex-output-label">Experiment-ready output — backlog intake format</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+            <div class="hyp-box">
+              <strong>H1 (Priority 1)</strong> — We believe <strong>aligning the landing page price with the ad price</strong> (or explaining the difference inline) will <strong>reduce early bounce rate for mobile users arriving from paid search</strong> because the current 45% price gap creates an immediate trust break for last-minute, price-anchored travelers.<br>
+              <span style="font-size:11px;color:#6d28d9;margin-top:6px;display:block">Suggested test: A/B · Landing price format · Primary metric: Scroll depth past first price · Secondary: Booking CVR</span>
+            </div>
+            <div class="hyp-box">
+              <strong>H2 (Priority 2)</strong> — We believe <strong>adding availability scarcity signals</strong> ("Only 3 rooms left for tonight") to results cards for same-day queries will <strong>increase click-through to detail pages for last-minute intent segments</strong> because urgency cues accelerate decisions for time-constrained travelers.<br>
+              <span style="font-size:11px;color:#6d28d9;margin-top:6px;display:block">Suggested test: A/B · Results card variant · Primary metric: Detail page CTR for &lt;12hr lead queries</span>
+            </div>
+            <div class="hyp-box">
+              <strong>H3 (Priority 3)</strong> — We believe <strong>surfacing top 3 filters as persistent chips</strong> on the mobile results page will <strong>increase filter engagement and downstream booking rate</strong> because the current collapsed state adds unnecessary interaction cost for task-focused mobile users.<br>
+              <span style="font-size:11px;color:#6d28d9;margin-top:6px;display:block">Suggested test: A/B · Mobile results layout · Primary metric: Filter engagement rate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /example-steps -->
+  </div><!-- /example-wrap -->
 
   <!-- WHAT AI DOES (AND DOESN'T) -->
   <div class="sec-header">
