@@ -360,12 +360,12 @@ Build ONE consolidated HTML email. Table-based layout only (no flexbox/grid — 
 Section order:
 1. 🌅 Header — dark navy (#1e3a5f), date in #93c5fd, greeting, 2-sentence morning note
 2. 📊 Stats row — 3 white cards: meetings count, action items, best focus window
-3. 📅 Schedule — time badges colored by type: purple #ede9fe=WORK, amber=interview, blue=personal, green=focus block. Include WORK/PERSONAL badge labels.
-4. 🎯 Job Pipeline — pipeline summary table (navy header) + individual cards (amber=interview, green=recruiter, red=rejection)
-5. 💼 Fresh Job Postings Today — NEW section: cards for HIGH fit jobs (amber border), MEDIUM fit (blue border). Each card: title, company, fit reason, apply link. Sub-header: "N new postings · Sources: Indeed · Remotive · We Work Remotely"
-6. 📬 Action Items — colored left-border rows (red=urgent, amber=this week)
-7. 👩‍🏫 Ms. Lund's Class — sky-blue left border
-8. 🚀 Focus Plan — dark green (#064e3b), numbered priorities (include top job to apply to tonight)
+3. 🚀 Focus Plan — dark green (#064e3b), numbered priorities (include top job to apply to tonight). Place HERE, right after stats, so it's seen immediately on open.
+4. 📅 Schedule — time badges colored by type: purple #ede9fe=WORK, amber=interview, blue=personal, green=focus block. Include WORK/PERSONAL badge labels.
+5. 🎯 Job Pipeline — pipeline summary table (navy header) + individual cards (amber=interview, green=recruiter, red=rejection)
+6. 💼 Fresh Job Postings Today — cards for HIGH fit jobs (amber border), MEDIUM fit (blue border). Each card: title, company, fit reason, apply link. Sub-header: "N new postings · Sources: Indeed · Remotive · We Work Remotely"
+7. 📬 Action Items — colored left-border rows (red=urgent, amber=this week)
+8. 👩‍🏫 Ms. Lund's Class — sky-blue left border
 9. 👀 Tomorrow Preview
 
 After building the HTML, call send_email:
