@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Friction Finder — AI Journey Audit Agent · Rahul Bhole</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f5f9;--surface:#fff;--border:rgba(0,0,0,0.08);
+  --text:#1a1a2e;--muted:#6b6b80;--accent:#6c5ce7;
+  --red:#dc2626;--amber:#d97706;--green:#16a34a;--teal:#0891b2;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* NAV */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.nav-back{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px}
+.nav-back:hover{color:var(--accent)}
+.nav-badge{font-size:11px;font-family:'Syne',sans-serif;letter-spacing:1px;color:var(--accent);text-transform:uppercase}
+
+/* HERO */
+.hero{background:#0f172a;color:#fff;padding:64px 24px 56px;text-align:center}
+.hero-eyebrow{font-family:'Syne',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;margin-bottom:16px}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(36px,6vw,64px);font-weight:800;letter-spacing:-2px;line-height:1;margin-bottom:8px}
+.hero-title span{color:#a5b4fc}
+.hero-sub{font-size:16px;color:#94a3b8;margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto}
+.hero-stats{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stat-chip{background:rgba(165,180,252,0.1);border:1px solid rgba(165,180,252,0.2);border-radius:100px;padding:8px 18px;font-family:'Syne',sans-serif;font-size:13px;color:#c7d2fe;display:flex;align-items:center;gap:8px}
+.stat-chip strong{color:#fff;font-size:15px}
+
+/* CONTENT */
+.content{max-width:900px;margin:0 auto;padding:0 24px 80px}
+
+/* SECTION HEADER */
+.sec-header{margin-top:56px;margin-bottom:24px;display:flex;align-items:center;gap:12px}
+.sec-label{font-family:'Syne',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);background:rgba(108,92,231,0.08);border:1px solid rgba(108,92,231,0.15);border-radius:100px;padding:4px 12px}
+.sec-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.3px}
+
+/* THE PROBLEM — 3 col */
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:600px){.problem-grid{grid-template-columns:1fr}}
+.prob-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.prob-icon{font-size:28px;margin-bottom:10px}
+.prob-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:6px}
+.prob-body{font-size:12.5px;color:var(--muted);line-height:1.6}
+
+/* VS ROW */
+.vs-row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-top:24px}
+.vs-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.vs-card.bad{border-color:#fecaca;background:#fff8f8}
+.vs-card.good{border-color:#bbf7d0;background:#f0fdf4}
+.vs-badge{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.vs-badge.bad{color:var(--red)}
+.vs-badge.good{color:var(--green)}
+.vs-items{list-style:none;display:flex;flex-direction:column;gap:7px}
+.vs-items li{font-size:12.5px;color:var(--muted);padding-left:16px;position:relative;line-height:1.5}
+.vs-items li::before{position:absolute;left:0}
+.bad .vs-items li::before{content:'✗';color:#fca5a5}
+.good .vs-items li::before{content:'✓';color:#4ade80}
+.vs-arrow{font-size:28px;color:var(--accent);text-align:center;font-weight:900}
+@media(max-width:600px){.vs-row{grid-template-columns:1fr}.vs-arrow{display:none}}
+
+/* HOW — pipeline */
+.pipeline{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 24px;overflow-x:auto}
+.pipe-row{display:flex;align-items:flex-start;min-width:580px}
+.pipe-node{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.pipe-node:not(:last-child)::after{content:'→';position:absolute;right:-12px;top:14px;color:var(--muted);font-size:16px;font-weight:700}
+.pipe-dot{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pipe-name{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;text-align:center;color:var(--text);max-width:70px}
+.pipe-desc{font-size:10px;color:var(--muted);text-align:center;max-width:80px;line-height:1.4}
+.pipe-tag{font-size:9px;font-family:'Syne',sans-serif;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap}
+.tag-auto{background:#ede9fe;color:var(--accent)}
+.tag-ai{background:#d1fae5;color:var(--green)}
+.tag-rule{background:#fef3c7;color:var(--amber)}
+
+/* WHAT THE AI DOES — 2 col */
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:580px){.ai-grid{grid-template-columns:1fr}}
+.ai-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;border-left:3px solid var(--accent)}
+.ai-card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ai-badge{font-size:9px;font-family:'Syne',sans-serif;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(108,92,231,0.1);color:var(--accent);letter-spacing:0.5px;text-transform:uppercase}
+.ai-card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700}
+.ai-card-body{font-size:12.5px;color:var(--muted);line-height:1.6}
+
+/* NOT AI — rule-based */
+.rule-card{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px 20px;margin-top:12px;border-left:3px solid var(--amber)}
+.rule-card-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--amber);margin-bottom:8px}
+.rule-items{display:flex;flex-wrap:wrap;gap:6px}
+.rule-item{font-size:11px;background:#fff;border:1px solid #fde68a;border-radius:6px;padding:3px 10px;color:#92400e}
+
+/* FINDINGS */
+.findings{display:flex;flex-direction:column;gap:10px}
+.finding{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.sev{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;white-space:nowrap;text-align:center}
+.sev-h{background:#fef2f2;color:var(--red);border:1px solid #fecaca}
+.sev-m{background:#fffbeb;color:var(--amber);border:1px solid #fde68a}
+.sev-l{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+.finding-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:4px}
+.finding-body{font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+.hypothesis{font-size:11.5px;color:var(--accent);background:rgba(108,92,231,0.06);border-radius:6px;padding:6px 10px;font-style:italic}
+
+/* IMPACT — compact table */
+.impact-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.impact-table th{font-family:'Syne',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:10px 16px;text-align:left;background:#f8f9fc;border-bottom:1px solid var(--border)}
+.impact-table td{padding:11px 16px;border-bottom:1px solid var(--border);line-height:1.4}
+.impact-table tr:last-child td{border-bottom:none}
+.impact-table tr:nth-child(even) td{background:#fafbfc}
+.delta{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
+
+/* TAKEAWAY */
+.takeaway{background:#0f172a;border-radius:14px;padding:36px;text-align:center;margin-top:48px}
+.takeaway-text{font-family:'Syne',sans-serif;font-size:clamp(16px,2.5vw,22px);font-weight:700;color:#e2e8f0;line-height:1.5;max-width:560px;margin:0 auto 16px}
+.takeaway-text span{color:#a5b4fc}
+.takeaway-sub{font-size:12px;color:#64748b;font-family:'Syne',sans-serif;letter-spacing:0.5px}
+
+/* DISCLAIMER */
+.disclaimer{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-top:40px;font-size:11.5px;color:var(--muted);line-height:1.6;text-align:center}
+
+footer{text-align:center;padding:28px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);margin-top:8px}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-back">← Portfolio</a>
+  <span class="nav-badge">02 · AI Product Discovery</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">AI-Assisted Product Discovery</div>
+  <h1 class="hero-title">Friction<br><span>Finder</span></h1>
+  <p class="hero-sub">Simulates real customer journeys across paid funnels. Finds what's broken. Outputs experiment-ready hypotheses.</p>
+  <div class="hero-stats">
+    <div class="stat-chip"><strong>6-stage</strong> audit pipeline</div>
+    <div class="stat-chip"><strong>3 personas</strong> × 2 devices</div>
+    <div class="stat-chip"><strong>2 hrs</strong> vs. 3-day manual audit</div>
+    <div class="stat-chip"><strong>Structured</strong> backlog-ready output</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- THE PROBLEM -->
+  <div class="sec-header">
+    <span class="sec-label">The Problem</span>
+    <h2 class="sec-title">Manual audits don't scale</h2>
+  </div>
+  <div class="problem-grid">
+    <div class="prob-card">
+      <div class="prob-icon">🐢</div>
+      <div class="prob-label">Slow</div>
+      <div class="prob-body">One persona × one device takes 2–3 days. Full matrix is impossible.</div>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">🎲</div>
+      <div class="prob-label">Inconsistent</div>
+      <div class="prob-body">Different reviewers notice different things. No standard framework.</div>
+    </div>
+    <div class="prob-card">
+      <div class="prob-icon">🔗</div>
+      <div class="prob-label">Not actionable</div>
+      <div class="prob-body">Findings sit in docs — not linked to experiments or backlog tickets.</div>
+    </div>
+  </div>
+
+  <div class="vs-row">
+    <div class="vs-card bad">
+      <div class="vs-badge bad">Before</div>
+      <ul class="vs-items">
+        <li>Ad hoc, PM-dependent review</li>
+        <li>Single device, single persona</li>
+        <li>Freeform notes in a doc</li>
+        <li>Issues found weeks after shipping</li>
+      </ul>
+    </div>
+    <div class="vs-arrow">→</div>
+    <div class="vs-card good">
+      <div class="vs-badge good">After</div>
+      <ul class="vs-items">
+        <li>Automated, structured, repeatable</li>
+        <li>3 personas × desktop + mobile</li>
+        <li>Scored findings + hypotheses</li>
+        <li>Runs on-demand or post-release</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="sec-header">
+    <span class="sec-label">How It Works</span>
+    <h2 class="sec-title">6-stage audit pipeline</h2>
+  </div>
+  <div class="pipeline">
+    <div class="pipe-row">
+      <div class="pipe-node">
+        <div class="pipe-dot" style="background:#ede9fe">🎯</div>
+        <div class="pipe-name">Journey Setup</div>
+        <div class="pipe-desc">query · channel · device</div>
+        <span class="pipe-tag tag-auto">Automated</span>
+      </div>
+      <div class="pipe-node">
+        <div class="pipe-dot" style="background:#dbeafe">👤</div>
+        <div class="pipe-name">Persona Select</div>
+        <div class="pipe-desc">intent · needs · context</div>
+        <span class="pipe-tag tag-auto">Automated</span>
+      </div>
+      <div class="pipe-node">
+        <div class="pipe-dot" style="background:#d1fae5">🕵️</div>
+        <div class="pipe-name">Funnel Walk</div>
+        <div class="pipe-desc">ad → landing → results → checkout</div>
+        <span class="pipe-tag tag-auto">Automated</span>
+      </div>
+      <div class="pipe-node">
+        <div class="pipe-dot" style="background:#fef3c7">⚠️</div>
+        <div class="pipe-name">Issue Detection</div>
+        <div class="pipe-desc">rules + AI pattern match</div>
+        <span class="pipe-tag tag-rule">Rule + AI</span>
+      </div>
+      <div class="pipe-node">
+        <div class="pipe-dot" style="background:#fee2e2">📊</div>
+        <div class="pipe-name">Severity Score</div>
+        <div class="pipe-desc">reach · impact · speed</div>
+        <span class="pipe-tag tag-rule">Rule-based</span>
+      </div>
+      <div class="pipe-node">
+        <div class="pipe-dot" style="background:#f0fdf4">💡</div>
+        <div class="pipe-name">Hypotheses</div>
+        <div class="pipe-desc">experiment-ready output</div>
+        <span class="pipe-tag tag-ai">AI</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT AI DOES (AND DOESN'T) -->
+  <div class="sec-header">
+    <span class="sec-label">AI Role</span>
+    <h2 class="sec-title">What AI does — and doesn't</h2>
+  </div>
+  <div class="ai-grid">
+    <div class="ai-card">
+      <div class="ai-card-top"><span class="ai-badge">AI does this</span></div>
+      <div class="ai-card-title">Persona-lens evaluation</div>
+      <div class="ai-card-body">Assesses whether key decision signals are visible and accessible for the active persona (e.g. urgency cues for last-minute shoppers).</div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-card-top"><span class="ai-badge">AI does this</span></div>
+      <div class="ai-card-title">Trust gap detection</div>
+      <div class="ai-card-body">Flags mismatches between what the acquisition ad promised and what the landing page delivers — a common conversion killer.</div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-card-top"><span class="ai-badge">AI does this</span></div>
+      <div class="ai-card-title">Finding clustering</div>
+      <div class="ai-card-body">Groups related observations into themes across funnel stages rather than returning a flat list of issues.</div>
+    </div>
+    <div class="ai-card">
+      <div class="ai-card-top"><span class="ai-badge">AI does this</span></div>
+      <div class="ai-card-title">Hypothesis generation</div>
+      <div class="ai-card-body">Outputs "We believe [change] will [outcome] for [persona] because [rationale]" — ready for experiment intake.</div>
+    </div>
+  </div>
+  <div class="rule-card">
+    <div class="rule-card-title">⚡ Rule-based (not AI) — more reliable for these</div>
+    <div class="rule-items">
+      <span class="rule-item">Price consistency: ad → landing</span>
+      <span class="rule-item">Query continuity through funnel</span>
+      <span class="rule-item">CTA above fold on mobile</span>
+      <span class="rule-item">Funnel step reachability</span>
+      <span class="rule-item">Element presence checks</span>
+    </div>
+  </div>
+
+  <!-- SAMPLE FINDINGS -->
+  <div class="sec-header">
+    <span class="sec-label">Sample Findings</span>
+    <h2 class="sec-title">What it surfaces</h2>
+  </div>
+  <div class="findings">
+
+    <div class="finding">
+      <span class="sev sev-h">High</span>
+      <div>
+        <div class="finding-title">Acquisition promise ≠ landing page</div>
+        <div class="finding-body">Ad emphasized "flexible options." Landing page had zero flexibility messaging. Immediate trust gap for flexibility-seeking users.</div>
+        <div class="hypothesis">💡 Surface flexibility above the fold on landing → improve conversion for flexibility-intent segments</div>
+      </div>
+    </div>
+
+    <div class="finding">
+      <span class="sev sev-h">High</span>
+      <div>
+        <div class="finding-title">Price inconsistency creates trust risk</div>
+        <div class="finding-body">Price shown in ad didn't match first price on landing (fee display difference). Price-sensitive users saw a mismatch before understanding why.</div>
+        <div class="hypothesis">💡 Align fee format between ad and landing → reduce early bounce for price-sensitive segments</div>
+      </div>
+    </div>
+
+    <div class="finding">
+      <span class="sev sev-m">Medium</span>
+      <div>
+        <div class="finding-title">Mobile filters hidden behind extra tap</div>
+        <div class="finding-body">Top decision filters collapsed on mobile. Added interaction cost reduced filter engagement and degraded result quality.</div>
+        <div class="hypothesis">💡 Persistent filter chips on mobile results → increase filter engagement and downstream conversion</div>
+      </div>
+    </div>
+
+    <div class="finding">
+      <span class="sev sev-m">Medium</span>
+      <div>
+        <div class="finding-title">No urgency signals for last-minute shoppers</div>
+        <div class="finding-body">Same-day searchers saw the same generic layout as users planning weeks out. No availability scarcity, no time-sensitive framing.</div>
+        <div class="hypothesis">💡 Urgency-aware ranking + inline availability signals for short-lead queries → improve conversion for last-minute segment</div>
+      </div>
+    </div>
+
+    <div class="finding">
+      <span class="sev sev-l">Low</span>
+      <div>
+        <div class="finding-title">Business traveler signals buried below fold</div>
+        <div class="finding-body">Cancellation policy and flexibility tier were low in the card hierarchy — requiring scroll before business-oriented users could evaluate.</div>
+        <div class="hypothesis">💡 Elevate policy signals in results cards for business segments → improve click-through to detail pages</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- IMPACT -->
+  <div class="sec-header">
+    <span class="sec-label">Impact</span>
+    <h2 class="sec-title">What changed</h2>
+  </div>
+  <table class="impact-table">
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>Manual audit</th>
+        <th>Friction Finder</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Speed</strong></td>
+        <td style="color:var(--muted)">2–3 days / persona</td>
+        <td><span class="delta">↑ Full matrix in &lt;2 hrs</span></td>
+      </tr>
+      <tr>
+        <td><strong>Coverage</strong></td>
+        <td style="color:var(--muted)">1 persona, 1 device</td>
+        <td><span class="delta">↑ 3 personas × desktop + mobile</span></td>
+      </tr>
+      <tr>
+        <td><strong>Consistency</strong></td>
+        <td style="color:var(--muted)">Varies by reviewer</td>
+        <td><span class="delta">↑ Same checklist every run</span></td>
+      </tr>
+      <tr>
+        <td><strong>Output format</strong></td>
+        <td style="color:var(--muted)">Freeform notes</td>
+        <td><span class="delta">↑ Scored findings + hypotheses</span></td>
+      </tr>
+      <tr>
+        <td><strong>Backlog linkage</strong></td>
+        <td style="color:var(--muted)">Manual translation</td>
+        <td><span class="delta">↑ Direct experiment intake</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- TAKEAWAY -->
+  <div class="takeaway">
+    <div class="takeaway-text">AI is most useful when it <span>scales judgment</span> — not replaces it.</div>
+    <div class="takeaway-sub">PM takeaway · Friction Finder</div>
+  </div>
+
+  <div class="disclaimer">
+    🔒 <strong>Public-safe case study.</strong> Anonymized to protect confidential product and company information. Product thinking and AI workflow are genuine.
+  </div>
+
+</div>
+
+<footer>
+  <div style="margin-bottom:8px"><a href="index.html" style="color:var(--accent);text-decoration:none;font-weight:600">← Back to Portfolio</a></div>
+  Rahul Bhole · AI PM Portfolio · <a href="https://linkedin.com/in/rahulbhole" style="color:var(--accent);text-decoration:none">LinkedIn</a>
+</footer>
+
+</body>
+</html>
