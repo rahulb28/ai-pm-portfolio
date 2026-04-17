@@ -2,8 +2,7 @@ name: Daily Brief
 
 on:
   schedule:
-    - cron: '0 14 * * 1-5'   # 7:00 AM PDT (Mon–Fri)
-    - cron: '0 15 * * 0,6'   # 8:00 AM PDT (Sat–Sun, slightly later)
+    - cron: '0 14 * * 1-5'   # 7:00 AM PDT (Mon–Fri only)
   workflow_dispatch:           # Manual trigger from GitHub UI
 
 jobs:
