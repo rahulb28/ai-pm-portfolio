@@ -1,9 +1,10 @@
 name: Daily Brief
 
 on:
-  schedule:
-    - cron: '0 14 * * 1-5'   # 7:00 AM PDT (Mon–Fri only)
-  workflow_dispatch:           # Manual trigger from GitHub UI
+  # Paused 2026-09-29 to cut Claude API spend. To resume, restore:
+  # schedule:
+  #   - cron: '0 14 * * 1-5'   # 7:00 AM PDT (Mon–Fri only)
+  workflow_dispatch:           # Manual trigger from GitHub UI (Actions → Daily Brief → Run workflow)
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
